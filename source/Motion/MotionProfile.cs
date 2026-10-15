@@ -1,0 +1,65 @@
+﻿namespace Trellis
+{
+	internal readonly struct MotionProfile
+	{
+		internal readonly float m_omega;
+		internal readonly float m_damping;
+		internal readonly float m_ventAcceleration;
+		internal readonly float m_rest;
+		internal readonly bool m_endStop;
+		internal readonly bool m_instant;
+
+		private MotionProfile(float omega, float damping, float ventAcceleration, float rest, bool endStop, bool instant)
+		{
+			m_omega = omega;
+			m_damping = damping;
+			m_ventAcceleration = ventAcceleration;
+			m_rest = rest;
+			m_endStop = endStop;
+			m_instant = instant;
+		}
+
+		private static float speed => AnimationConfig.Speed;
+		private static bool bodiesMove => AnimationConfig.Enabled && !AnimationConfig.ReducedMotion;
+
+		internal static MotionProfile body(float extentPx, float unitPx, bool animate) => MotionProfile.cable(extentPx, unitPx, false, animate && MotionProfile.bodiesMove);
+
+		internal static MotionProfile payout(float extentPx, float spanPx, bool animate) => MotionProfile.cable(extentPx, spanPx, true, animate && MotionProfile.bodiesMove);
+
+		internal static MotionProfile hand(float unitPx, bool animate)
+		{
+			float unit = FastMath.max(unitPx, 1f);
+			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kHand.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, false, !(animate && MotionProfile.bodiesMove));
+		}
+
+		internal static MotionProfile light(bool animate) => MotionProfile.lightOver(MotionTokens.kAnchorLoad.m_extentPx, animate);
+
+		internal static MotionProfile release(float extentPx, bool animate) => MotionProfile.lightOver(FastMath.max(extentPx, MotionTokens.kAnchorLoad.m_extentPx), animate);
+
+		internal static MotionProfile frameLight(float extentPx, bool animate)
+		{
+			float seconds = MotionMath.frameSeconds(MotionTokens.kAnchorLoad.m_ventSeconds, MotionTokens.kAnchorLoad.m_extentPx, extentPx) / MotionProfile.speed;
+
+			float omega = FastMath.min(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionMath.criticalOmega(seconds));
+			return new MotionProfile(omega, MotionTokens.kLight.m_damping, MotionMath.ventAcceleration(1f, seconds), MotionTokens.kSolver.m_restLight, false, !(animate && AnimationConfig.Enabled));
+		}
+
+		internal static float releaseSeconds(float extentPx) => MotionMath.ventSeconds(FastMath.max(extentPx, MotionTokens.kAnchorLoad.m_extentPx), MotionTokens.kVentAcceleration * MotionProfile.speed * MotionProfile.speed);
+
+		private static MotionProfile cable(float extentPx, float unitPx, bool endStop, bool animate)
+		{
+			float unit = FastMath.max(unitPx, 1f);
+
+			float omega = MotionMath.massOmega(MotionTokens.kAnchorOmega, MotionTokens.kAnchorLoad.m_extentPx, extentPx) * MotionProfile.speed;
+			return new MotionProfile(omega, MotionTokens.kCable.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, endStop, !animate);
+		}
+
+		private static MotionProfile lightOver(float spanPx, bool animate)
+		{
+			bool instant = !(animate && AnimationConfig.Enabled);
+			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kLight.m_damping, MotionProfile.ventAcceleration(spanPx), MotionTokens.kSolver.m_restLight, false, instant);
+		}
+
+		private static float ventAcceleration(float unitPx) => MotionTokens.kVentAcceleration * MotionProfile.speed * MotionProfile.speed / unitPx;
+	}
+}

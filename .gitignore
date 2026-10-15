@@ -1,0 +1,15 @@
+# Build output
+build/
+bin/
+obj/
+
+# Local reference assemblies, generated from the game, never committed
+/refs
+
+# IDE
+.vs/
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
