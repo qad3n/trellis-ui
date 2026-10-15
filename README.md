@@ -56,5 +56,4 @@ Put your interop DLLs in `refs/core` and `refs/interop`, or pass `-p:UnityRefs=<
 
 ```bash
 dotnet build Trellis.csproj
-tools/guard-lint.sh && tools/style-lint.sh && tools/render-lint.sh && tools/anim-lint.sh
 ```
