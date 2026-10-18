@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- smallest host: a BepInEx IL2CPP plugin that compiles the library source in, the way a real host does -->
+  <!-- the smallest host compiles the library source in like a real host does -->
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>TrellisSample</AssemblyName>

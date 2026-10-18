@@ -17,7 +17,7 @@ namespace Trellis
 
 			bool rowHovered = Widgets.hoverRow(rowRect, tooltip);
 
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			bool clicked = Widgets.scrollButton(RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, w - MenuHost.kLabelW, MenuHost.kFieldH), display, Theme.dropdownButton);
 

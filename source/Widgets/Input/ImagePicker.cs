@@ -46,7 +46,7 @@ namespace Trellis
 			}
 			else
 			{
-				Widgets.fittedLabel(RectMath.create(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w - refreshReserve, MenuHost.kFieldH), Labels.kEmpty, Theme.label, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w - refreshReserve, MenuHost.kFieldH), Labels.kEmpty, Theme.label, TextAnchor.MiddleLeft);
 
 				y += MenuHost.kFieldH + Layout.kStatusGap;
 			}
@@ -58,7 +58,7 @@ namespace Trellis
 				onRefreshed();
 			}
 
-			Widgets.wrappedLabel(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, status, Theme.valueLabel, out float statusH);
+			UiText.wrappedLabel(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, status, Theme.valueLabel, out float statusH);
 			y += statusH + Layout.kStatusGap;
 			Widgets.endRow(ref y, ref row);
 		}

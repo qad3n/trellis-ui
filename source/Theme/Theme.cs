@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using UnityEngine;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class Theme
 	{
 		private const int kCodePadLeft = 3;
@@ -51,11 +49,12 @@ namespace Trellis
 		private static readonly WidgetChrome kDropdownChrome = new WidgetChrome();
 		private static readonly WidgetChrome kDropdownOpen = new WidgetChrome();
 		private static readonly WidgetChrome kFieldChrome = new WidgetChrome();
+		private static readonly WidgetChrome kKeybindCapture = new WidgetChrome();
 		private static readonly WidgetChrome kCheckOff = new WidgetChrome();
 		private static readonly WidgetChrome kCheckOn = new WidgetChrome();
 		private static readonly WidgetChrome kThumbChrome = new WidgetChrome();
 		internal static readonly WidgetChrome kItemChrome = new WidgetChrome();
-		private static readonly WidgetChrome[] kStyleChromes = new[] { Theme.kButtonChrome, Theme.kDangerChrome, Theme.kPopupChrome, Theme.kTabChrome, Theme.kActiveTab, Theme.kSubTab, Theme.kActiveSubTab, Theme.kDropdownChrome, Theme.kDropdownOpen, Theme.kFieldChrome };
+		private static readonly WidgetChrome[] kStyleChromes = new[] { Theme.kButtonChrome, Theme.kDangerChrome, Theme.kPopupChrome, Theme.kTabChrome, Theme.kActiveTab, Theme.kSubTab, Theme.kActiveSubTab, Theme.kDropdownChrome, Theme.kDropdownOpen, Theme.kFieldChrome, Theme.kKeybindCapture };
 		private static readonly List<Texture2D> kTrackedTextures = new List<Texture2D>();
 		private static readonly List<Texture2D> kCaretTextures = new List<Texture2D>();
 		private static readonly List<Action> kRebuildHooks = new List<Action>();
@@ -65,7 +64,7 @@ namespace Trellis
 
 		private static readonly int[] kPrewarmSizes = new[] { FontSizes.kSmall, FontSizes.kCompact, FontSizes.kBody, FontSizes.kPopup, FontSizes.kTitle };
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x7617EE4661ED5F6D)]
 		public static Color AccentColor = ColorHex.parse("00AAFF");
 
 		internal static Color m_accent;
@@ -102,7 +101,7 @@ namespace Trellis
 		private static Color m_cursorAccent;
 		private static bool m_cursorApplied;
 
-		// accent colour stays on Theme since its config key is FullName
+		// accent colour stays on Theme since its config id hashes the owner name
 		internal static class Surfaces
 		{
 			internal static readonly Color kTransparent = ColorMath.rgba(0, 0, 0, 0);
@@ -283,6 +282,7 @@ namespace Trellis
 		internal static GUIStyle activeSubTab { get; private set; }
 		internal static GUIStyle dropdownButton { get; private set; }
 		internal static GUIStyle dropdownOpen { get; private set; }
+		internal static GUIStyle keybindCapture { get; private set; }
 		internal static GUIStyle dropdownItem { get; private set; }
 		internal static Texture2D sliderTrack { get; private set; }
 		internal static Texture2D thumbHover { get; private set; }
@@ -867,6 +867,9 @@ namespace Trellis
 			// not activeTab since bolding reflows the label under the cursor
 			Theme.kDropdownOpen.set(Surfaces.m_surface2, Theme.m_accent, Surfaces.m_surface2, Theme.m_accentHover, Surfaces.m_surface1, Theme.m_accentDim);
 
+			// an armed keybind brightens on press since a darker press read as disarmed
+			Theme.kKeybindCapture.set(Theme.captureFill(ThemeConstants.CaptureTint.kRest), Theme.m_accentHover, Theme.captureFill(ThemeConstants.CaptureTint.kHover), Theme.m_accentHover, Theme.captureFill(ThemeConstants.CaptureTint.kPress), Theme.m_accentHover);
+
 			Theme.kFieldChrome.set(Surfaces.m_surface1, Surfaces.m_subtleBorder, Surfaces.m_surface2, Surfaces.m_overlay0, Surfaces.m_surface2, ColorMath.lerp(Surfaces.m_subtleBorder, Theme.m_accent, ThemeConstants.kFocusTint));
 
 			Theme.kItemChrome.set(clear, clear, Theme.m_accent, Theme.m_accentDim, Theme.m_accent, Theme.m_accentDim);
@@ -1021,6 +1024,8 @@ namespace Trellis
 			Theme.kDropdownChrome.m_style = Theme.dropdownButton;
 			Theme.dropdownOpen = Theme.recolor(Theme.dropdownButton, () => Text.m_primary);
 			Theme.kDropdownOpen.m_style = Theme.dropdownOpen;
+			Theme.keybindCapture = Theme.recolor(Theme.dropdownButton, () => Text.m_primary);
+			Theme.kKeybindCapture.m_style = Theme.keybindCapture;
 			Theme.dropdownItem = Theme.createStyle(font, FontSizes.kCompact, () => Text.m_primary);
 			Theme.dropdownItem.alignment = TextAnchor.MiddleLeft;
 			Theme.dropdownItem.padding = new RectOffset(Theme.kItemPadLeft, Theme.kItemPadRight, Theme.kPadTop, Theme.kPadBottom);
@@ -1049,6 +1054,7 @@ namespace Trellis
 			Theme.espLabel.alignment = TextAnchor.UpperCenter;
 			Theme.espLabel.richText = true;
 			Theme.espShadow = Theme.recolor(Theme.espLabel, () => ColorMath.kBlack);
+			Theme.espShadow.font = ShadowFont.of(font);
 			Theme.textField = Theme.createStyle(font, FontSizes.kCompact, () => Text.m_primary);
 			Theme.textField.alignment = TextAnchor.MiddleLeft;
 			Theme.textField.padding = new RectOffset(Theme.kFieldPadLeft, Theme.kFieldPadRight, Theme.kFieldPadTop, Theme.kFieldPadBottom);
@@ -1272,6 +1278,8 @@ namespace Trellis
 			style.fontSize = size;
 			return Theme.bindText(style, textColor);
 		}
+
+		private static Color captureFill(float accentShare) => ColorMath.lerp(Surfaces.m_surface2, Theme.m_accent, accentShare);
 
 		private static GUIStyle recolor(GUIStyle source, Func<Color> textColor)
 		{

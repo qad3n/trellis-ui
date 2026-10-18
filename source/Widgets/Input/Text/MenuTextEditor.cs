@@ -36,6 +36,7 @@ namespace Trellis
 		private static int m_prefixCount = 1;
 		private static float m_padLeft;
 		private static float m_padRight;
+		private static float m_spaceWidth;
 		private static int m_stylesVersion = -1;
 		private static string m_maskCache = string.Empty;
 		private static char m_maskChar;
@@ -746,6 +747,7 @@ namespace Trellis
 				RectOffset pad = style.padding;
 				MenuTextEditor.m_padLeft = pad.left;
 				MenuTextEditor.m_padRight = pad.right;
+				MenuTextEditor.m_spaceWidth = MenuTextLayout.spaceWidth(style);
 				MenuTextEditor.m_measuredStyle = style;
 				MenuTextEditor.m_measuredText = null;
 			}
@@ -768,10 +770,7 @@ namespace Trellis
 			}
 
 			for (int i = start; i < count; i++)
-			{
-				Theme.kScratchContent.text = display[..i];
-				MenuTextEditor.m_prefixWidths[i] = style.CalcSize(Theme.kScratchContent).x;
-			}
+				MenuTextEditor.m_prefixWidths[i] = MenuTextLayout.measure(display, 0, i, style, MenuTextEditor.m_spaceWidth);
 
 			MenuTextEditor.m_prefixCount = count;
 			MenuTextEditor.m_measuredText = display;

@@ -27,7 +27,7 @@ namespace Trellis
 
 		internal static ImagePreview preview => MenuWindowBackground.active ? MenuWindowBackground.m_preview : null;
 
-		// what the window shows at a gui point, image letterbox included
+		// what the window shows at a gui point including the image letterbox
 		internal static Color backdropAt(Rect windowRect, float x, float y)
 		{
 			if (!MenuWindowBackground.active)

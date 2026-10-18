@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using static Trellis.Widgets;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static partial class MenuHost
 	{
 		private const int kDefaultWinH = 750;
@@ -53,10 +51,10 @@ namespace Trellis
 		private static Action m_onFailure;
 		private static Func<KeyCode, bool> m_toggleKey;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x69D5DA4A741DC27D)]
 		internal static float winW = MenuHost.kDefaultWinW;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x69D5DB4A741DC430)]
 		internal static float winH = MenuHost.kDefaultWinH;
 
 		internal static bool m_visible;
@@ -88,7 +86,7 @@ namespace Trellis
 
 		private static Rect windowRect => RectMath.create(MenuHost.m_winX, MenuHost.m_winY, MenuHost.winW, MenuHost.winH);
 
-		// the order of the rows is the sidebar order, a tab index is a row index
+		// row order is the sidebar order so a tab index is a row index
 		internal static void setTabs(TabRow[] tabs)
 		{
 			MenuHost.m_tabs = tabs;
@@ -332,7 +330,7 @@ namespace Trellis
 
 			Gui.label(RectMath.create(MenuHost.m_winX + MenuHost.kPad + 2f, MenuHost.m_winY + 6f, MenuHost.winW - MenuHost.kPad * 2f, MenuHost.kTitleBarH), MenuHost.m_title, Theme.title);
 
-			Widgets.fittedLabel(RectMath.create(MenuHost.m_winX + MenuHost.kPad, MenuHost.m_winY, MenuHost.winW - MenuHost.kPad * 2f - 2f, MenuHost.kTitleBarH - MenuHost.kAccentThickness), MenuHost.m_meta, Theme.label, TextAnchor.MiddleRight);
+			UiText.fittedLabel(RectMath.create(MenuHost.m_winX + MenuHost.kPad, MenuHost.m_winY, MenuHost.winW - MenuHost.kPad * 2f - 2f, MenuHost.kTitleBarH - MenuHost.kAccentThickness), MenuHost.m_meta, Theme.label, TextAnchor.MiddleRight);
 
 			if (MenuHost.m_tabs.Length == 0)
 			{
@@ -474,13 +472,23 @@ namespace Trellis
 			Widgets.drawDropdownPopup(viewRect, scrollPosition);
 			Widgets.drawMultiSelectPopup(viewRect, scrollPosition);
 
+			MenuHost.drawHostPopups(viewRect, scrollPosition, false);
+
 			ColorPicker.drawPopup(viewRect, scrollPosition);
 
-			foreach (PopupRow popup in MenuHost.kPopups)
-				popup.m_draw?.Invoke(viewRect, scrollPosition);
+			MenuHost.drawHostPopups(viewRect, scrollPosition, true);
 
 			MenuHost.drawTooltip();
 			MenuHost.drawPopup();
+		}
+
+		private static void drawHostPopups(Rect viewRect, Vector2 scrollPosition, bool abovePicker)
+		{
+			foreach (PopupRow popup in MenuHost.kPopups)
+			{
+				if (popup.m_abovePicker == abovePicker)
+					popup.m_draw?.Invoke(viewRect, scrollPosition);
+			}
 		}
 
 		private static float popupDim()

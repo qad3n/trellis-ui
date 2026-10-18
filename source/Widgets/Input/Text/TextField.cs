@@ -6,9 +6,9 @@ namespace Trellis
 {
 	internal static partial class Widgets
 	{
-		private const int kNoCap = -1;
+		internal const int kNoCap = -1;
 
-		private static readonly EvictingCache<string, string> kPreviewMarkups = new EvictingCache<string, string>(RowPrimitiveLayout.kMarkupMax);
+		private static readonly EvictingCache<string, string> kPreviewMarkups = new EvictingCache<string, string>(Widgets.kMarkupCacheMax);
 
 		private enum TextEntryKind
 		{
@@ -55,7 +55,7 @@ namespace Trellis
 				MenuHost.hoverTooltip(RectMath.create(offsetX, offsetY + y, w, MenuHost.kFieldH), tooltip);
 
 			Widgets.beginDisabled(disabled);
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			string result = Widgets.fixedTextField(RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, w - MenuHost.kLabelW, MenuHost.kFieldH), value ?? string.Empty, Theme.textField, controlName);
 
@@ -82,7 +82,7 @@ namespace Trellis
 			if (Gui.enabled)
 				MenuHost.hoverTooltip(rowRect, tooltip);
 
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			string result = Widgets.fixedTextArea(RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, w - MenuHost.kLabelW, Widgets.kAreaH), value ?? string.Empty, Theme.textArea, controlName);
 
@@ -110,7 +110,7 @@ namespace Trellis
 			bool rowHovered = Widgets.rowHovered(offsetX, offsetY + y, w, disabled);
 
 			Widgets.beginDisabled(disabled);
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			Rect fieldRect = RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, fieldW, MenuHost.kFieldH);
 
@@ -179,7 +179,7 @@ namespace Trellis
 			}
 		}
 
-		// scrollMouse is offscreen outside the menu view and under popups so menu fields only
+		// the scroll mouse is offscreen outside the menu view and under popups
 		private static void hoverPreview(Rect rect, string text, string controlName)
 		{
 			if (text.Length == 0 || !RectMath.contains(rect, MenuHost.scrollMouse))
@@ -217,7 +217,7 @@ namespace Trellis
 
 			float fieldW = w - MenuHost.kLabelW - ApplyField.kApplyWidth - ApplyField.kGap - rollSpan;
 
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), Widgets.bold(label), Widgets.labelStyle(Widgets.rowHovered(offsetX, offsetY + y, w, false)), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, MenuHost.kFieldH), UiText.bold(label), Widgets.labelStyle(Widgets.rowHovered(offsetX, offsetY + y, w, false)), TextAnchor.MiddleLeft);
 
 			string result = Widgets.fixedTextField(RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, fieldW, MenuHost.kFieldH), value ?? string.Empty, Theme.textField, controlName);
 

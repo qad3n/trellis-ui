@@ -31,25 +31,7 @@ namespace Trellis
 			internal const int kMaxVisibleCompact = 8;
 		}
 
-		internal readonly struct SelectRowItem
-		{
-			internal readonly string m_animId;
-			internal readonly string m_title;
-			internal readonly string m_detail;
-			internal readonly bool m_enabled;
-			internal readonly int m_chipMask;
-
-			internal SelectRowItem(string animId, string title, string detail, bool enabled, int chipMask = 0)
-			{
-				m_animId = animId;
-				m_title = title;
-				m_detail = detail;
-				m_enabled = enabled;
-				m_chipMask = chipMask;
-			}
-		}
-
-		// rows that select on click and carry their own on switch in a scroll pane, a compact list drops the detail line
+		// a compact list drops the detail line
 		internal static int drawSelectList(ref float y, float w, ref ScrollState scroll, int count, int selected, Func<int, SelectRowItem> items, string[] chips, bool compact, out int toggled)
 		{
 			toggled = -1;
@@ -121,7 +103,7 @@ namespace Trellis
 
 			float rightX = x + contentW - SelectRowLayout.kPadX;
 
-			// a switched off row reads dimmed, a disabled scope here would shift every widget id after the list
+			// dimmed rather than disabled because a disabled scope would shift every widget id after the list
 			Color prevColor = Gui.color;
 			if (!item.m_enabled)
 				Gui.color = ColorMath.fade(prevColor, HintLayout.kInactiveAlpha);
@@ -129,14 +111,14 @@ namespace Trellis
 			float titleTop = Widgets.m_selectCompact ? top + (rowH - SelectRowLayout.kTitleH) * 0.5f : top + SelectRowLayout.kTopPad;
 
 			float chipsLeft = Widgets.m_selectChips == null ? rightX + SelectRowLayout.kChipGap : Widgets.drawRowChips(rightX, titleTop, Widgets.m_selectChips, item.m_chipMask, textX + SelectRowLayout.kTitleMinW);
-			Widgets.fittedLabel(RectMath.create(textX, titleTop, chipsLeft - SelectRowLayout.kChipGap - textX, SelectRowLayout.kTitleH), item.m_title, Theme.label, TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(textX, titleTop, chipsLeft - SelectRowLayout.kChipGap - textX, SelectRowLayout.kTitleH), item.m_title, Theme.label, TextAnchor.MiddleLeft);
 			if (!Widgets.m_selectCompact)
-				Widgets.fittedLabel(RectMath.create(textX, top + SelectRowLayout.kTopPad + SelectRowLayout.kTitleH, rightX - textX, SelectRowLayout.kDetailH), item.m_detail, Theme.valueLabel, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(textX, top + SelectRowLayout.kTopPad + SelectRowLayout.kTitleH, rightX - textX, SelectRowLayout.kDetailH), item.m_detail, Theme.valueLabel, TextAnchor.MiddleLeft);
 
 			Gui.color = prevColor;
 		}
 
-		// right aligned chips for the set bits, returns the left edge they reached
+		// returns the left edge the right aligned chips reached
 		private static float drawRowChips(float rightX, float chipY, string[] chips, int mask, float minLeft)
 		{
 			float x = rightX;
@@ -144,10 +126,10 @@ namespace Trellis
 			{
 				if ((mask & (1 << i)) == 0)
 					continue;
-				if (x - Widgets.badgeWidth(chips[i]) < minLeft)
+				if (x - Badges.width(chips[i]) < minLeft)
 					break;
 
-				x = Widgets.drawBadge(x, chipY, chips[i], Theme.m_accent, true);
+				x = Badges.draw(x, chipY, chips[i], Theme.m_accent, true);
 			}
 			return x;
 		}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static Trellis.MenuHost;
 
@@ -8,15 +9,19 @@ namespace Trellis
 	{
 		private const float kKeybindPadX = 12f;
 		private const float kKeybindMinW = 80f;
-		private const string kKeybindUnbound = "None";
 		private const string kKeybindCapturing = "<press a key>";
-		private const string kKeybindTooltip = "Bind any key or mouse button. Right click to clear.";
+		internal const string kKeybindTooltip = "Bind a key, mouse button or combo like Ctrl + I. Right click to clear.";
 		private const float kKeybindInlineGap = 10f;
 
-		// a KeyCode.ToString call boxes and allocates every draw
-		private static readonly Dictionary<KeyCode, string> kKeyNames = new Dictionary<KeyCode, string>();
+		// a chord label allocates every draw
+		private static readonly Dictionary<KeyChord, string> kChordNames = new Dictionary<KeyChord, string>();
+
+		// keys held so far in a capture which commits when the first of them is released
+		private static readonly KeyCode[] kCaptureKeys = new KeyCode[KeyChord.kMaxKeys];
 
 		private static string m_keybindId;
+		private static int m_captureCount;
+		private static string m_captureLabel = Widgets.kKeybindCapturing;
 
 		private static class KeybindCapture
 		{
@@ -27,9 +32,9 @@ namespace Trellis
 
 		// a key pressed to bind must not fire its current bind
 		internal static bool capturingKeybind => Widgets.m_keybindId != null;
-		internal static void closeKeybind() => Widgets.m_keybindId = null;
+		internal static void closeKeybind() => Widgets.armKeybind(null);
 
-		internal static KeyCode drawKeybind(ref float y, float w, string label, KeyCode value, string tooltip = null, bool disabled = false)
+		internal static KeyChord drawKeybind(ref float y, float w, string label, KeyChord value, string tooltip = null, bool disabled = false)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kKeybind, label);
 
@@ -48,7 +53,7 @@ namespace Trellis
 			bool rowHovered = Gui.enabled && RectMath.contains(rowRect, MenuHost.scrollMouse);
 
 			Rect labelRect = Widgets.dropdownLabelRect(y, w, buttonW);
-			Widgets.fittedLabel(labelRect, Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(labelRect, UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			MenuHost.hoverTooltip(rowRect, tooltip);
 
@@ -62,7 +67,7 @@ namespace Trellis
 		}
 
 		// the key stays editable while the feature is off so it can be bound ahead
-		internal static bool drawToggleKeybind(ref float y, float w, bool value, string label, ref KeyCode key, string tooltip = null, string keyTooltip = Widgets.kKeybindTooltip)
+		internal static bool drawToggleKeybind(ref float y, float w, bool value, string label, ref KeyChord key, string tooltip = null, string keyTooltip = Widgets.kKeybindTooltip)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kToggle, label);
 
@@ -86,7 +91,7 @@ namespace Trellis
 			return value;
 		}
 
-		internal static bool drawButtonKeybind(ref float y, float w, in ActionButton button, ref KeyCode key, string keyTooltip = Widgets.kKeybindTooltip)
+		internal static bool drawButtonKeybind(ref float y, float w, in ActionButton button, ref KeyChord key, string keyTooltip = Widgets.kKeybindTooltip)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kButton, null);
 
@@ -109,27 +114,25 @@ namespace Trellis
 			return clicked;
 		}
 
-		private static float keybindWidth(string id, KeyCode value, float w)
+		private static float keybindWidth(string id, KeyChord value, float w)
 		{
-			string display = Widgets.m_keybindId == id ? Widgets.kKeybindCapturing : Widgets.formatKeybind(value);
-
-			float contentW = Widgets.measuredWidth(Theme.dropdownButton, display) + Widgets.kKeybindPadX;
+			float contentW = UiText.measuredWidth(Theme.dropdownButton, Widgets.keybindDisplay(id, value)) + Widgets.kKeybindPadX;
 			return Widgets.buttonWidth(w, FastMath.max(Widgets.kKeybindMinW, contentW));
 		}
 
-		private static KeyCode keybindButton(Rect buttonRect, string id, string label, KeyCode value, bool disabled)
+		private static string keybindDisplay(string id, KeyChord value) => Widgets.m_keybindId == id ? Widgets.m_captureLabel : Widgets.formatKeybind(value);
+
+		private static KeyChord keybindButton(Rect buttonRect, string id, string label, KeyChord value, bool disabled)
 		{
 			bool capturing = Widgets.m_keybindId == id;
 
-			string display = capturing ? Widgets.kKeybindCapturing : Widgets.formatKeybind(value);
-
-			GUIStyle style = capturing ? Theme.dropdownOpen : Theme.dropdownButton;
+			GUIStyle style = capturing ? Theme.keybindCapture : Theme.dropdownButton;
 
 			bool wasCapturing = capturing;
 
-			if (Widgets.scaledButton(buttonRect, display, style, MenuHost.scrollMouse))
+			if (Widgets.scaledButton(buttonRect, Widgets.keybindDisplay(id, value), style, MenuHost.scrollMouse))
 			{
-				Widgets.m_keybindId = capturing ? null : id;
+				Widgets.armKeybind(capturing ? null : id);
 
 				capturing = Widgets.m_keybindId == id;
 			}
@@ -137,43 +140,80 @@ namespace Trellis
 
 			if (!disabled && MenuHost.mouseDown1 && RectMath.contains(buttonRect, MenuHost.scrollMouse))
 			{
-				value = KeyCode.None;
+				value = default;
 
-				Widgets.m_keybindId = null;
+				Widgets.armKeybind(null);
 
 				capturing = false;
 			}
 
-			if (capturing && Event.current.type == EventType.KeyDown)
-			{
-				KeyCode pressed = Event.current.keyCode;
-				if (pressed == KeyCode.Escape)
-					Widgets.m_keybindId = null;
-				else if (pressed != KeyCode.None)
-				{
-					value = pressed;
+			if (capturing && Widgets.captureKeyEvent())
+				value = Widgets.commitKeybind(label);
 
-					Widgets.m_keybindId = null;
-
-					UiLog.debug($"[Widgets.keybindButton] {label} = {Widgets.formatKeybind(value)}");
-				}
-
-				Event.current.Use();
-			}
+			capturing = Widgets.m_keybindId == id;
 
 			if (wasCapturing && capturing && MenuHost.extraButton >= MenuHost.kFirstExtra)
 			{
-				value = KeyCode.Mouse0 + MenuHost.extraButton;
+				Widgets.holdCaptureKey(KeyCode.Mouse0 + MenuHost.extraButton);
 
-				Widgets.m_keybindId = null;
-
-				UiLog.debug($"[Widgets.keybindButton] {label} = {Widgets.formatKeybind(value)}");
+				value = Widgets.commitKeybind(label);
 			}
 
 			// an armed capture off screen eats the next key meant for the game
 			if (wasCapturing && capturing && MenuHost.rawMouseDown0 && !RectMath.contains(buttonRect, MenuHost.scrollMouse))
-				Widgets.m_keybindId = null;
+				Widgets.armKeybind(null);
 			return value;
+		}
+
+		// true once the first held key is released and the capture is ready to commit
+		private static bool captureKeyEvent()
+		{
+			Event current = Event.current;
+
+			EventType type = current.type;
+			if (type != EventType.KeyDown && type != EventType.KeyUp)
+				return false;
+
+			KeyCode key = current.keyCode;
+
+			current.Use();
+
+			if (type == EventType.KeyUp)
+				return Array.IndexOf(Widgets.kCaptureKeys, key, 0, Widgets.m_captureCount) >= 0;
+
+			if (key == KeyCode.Escape)
+				Widgets.armKeybind(null);
+			else if (key != KeyCode.None)
+				Widgets.holdCaptureKey(key);
+			return false;
+		}
+
+		private static void holdCaptureKey(KeyCode key)
+		{
+			if (Widgets.m_captureCount == KeyChord.kMaxKeys || Array.IndexOf(Widgets.kCaptureKeys, key, 0, Widgets.m_captureCount) >= 0)
+				return;
+
+			Widgets.kCaptureKeys[Widgets.m_captureCount++] = key;
+			Widgets.m_captureLabel = Widgets.capturedChord().ToString();
+		}
+
+		private static KeyChord commitKeybind(string label)
+		{
+			KeyChord chord = Widgets.capturedChord();
+
+			Widgets.armKeybind(null);
+
+			UiLog.debug($"[Widgets.commitKeybind] {label} = {Widgets.formatKeybind(chord)}");
+			return chord;
+		}
+
+		private static KeyChord capturedChord() => new KeyChord(Widgets.kCaptureKeys, Widgets.m_captureCount);
+
+		private static void armKeybind(string id)
+		{
+			Widgets.m_keybindId = id;
+			Widgets.m_captureCount = 0;
+			Widgets.m_captureLabel = Widgets.kKeybindCapturing;
 		}
 
 		private static void drawWash(Rect buttonRect, string id, bool capturing)
@@ -185,15 +225,13 @@ namespace Trellis
 			Theme.drawRoundedTint(buttonRect, ColorMath.withAlpha(Theme.m_accent, KeybindCapture.kAlpha * captureT));
 		}
 
-		private static string formatKeybind(KeyCode key)
+		private static string formatKeybind(KeyChord chord)
 		{
-			if (key == KeyCode.None)
-				return Widgets.kKeybindUnbound;
-			if (Widgets.kKeyNames.TryGetValue(key, out string cached))
+			if (Widgets.kChordNames.TryGetValue(chord, out string cached))
 				return cached;
 
-			string name = key.ToString();
-			Widgets.kKeyNames[key] = name;
+			string name = chord.ToString();
+			Widgets.kChordNames[chord] = name;
 			return name;
 		}
 	}

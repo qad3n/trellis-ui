@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- standalone build that proves the library compiles without any host; hosts compile source/ directly -->
+  <!-- proves the library compiles without a host since hosts compile source directly -->
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Trellis</AssemblyName>
@@ -26,6 +26,8 @@
     <Reference Include="UnityEngine.IMGUIModule" HintPath="$(UnityRefs)/interop/UnityEngine.IMGUIModule.dll" Private="false" />
     <Reference Include="UnityEngine.InputLegacyModule" HintPath="$(UnityRefs)/interop/UnityEngine.InputLegacyModule.dll" Private="false" />
     <Reference Include="UnityEngine.TextRenderingModule" HintPath="$(UnityRefs)/interop/UnityEngine.TextRenderingModule.dll" Private="false" />
+    <Reference Include="UnityEngine.TextCoreFontEngineModule" HintPath="$(UnityRefs)/interop/UnityEngine.TextCoreFontEngineModule.dll" Private="false" />
+    <Reference Include="UnityEngine.TextCoreTextEngineModule" HintPath="$(UnityRefs)/interop/UnityEngine.TextCoreTextEngineModule.dll" Private="false" />
     <Reference Include="UnityEngine.UI" HintPath="$(UnityRefs)/interop/UnityEngine.UI.dll" Private="false" />
   </ItemGroup>
 

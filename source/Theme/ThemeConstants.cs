@@ -19,6 +19,13 @@
 		internal const int kFpsGood = 60;
 		internal const int kFpsCaution = 30;
 
+		internal static class CaptureTint
+		{
+			internal const float kRest = 0.35f;
+			internal const float kHover = 0.45f;
+			internal const float kPress = 0.6f;
+		}
+
 		internal static readonly HsvDelta kHover = new HsvDelta(-0.15f, +0.15f);
 		internal static readonly HsvDelta kDim = new HsvDelta(+0.1f, -0.2f);
 		internal static readonly HsvDelta kTitle = new HsvDelta(-0.35f, +0.25f);

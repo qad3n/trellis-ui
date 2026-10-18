@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TrellisSample
 {
-	// unity calls into the host and the host calls into the menu, nothing else drives it
+	// unity calls the host and only the host calls the menu
 	public class SampleDriver : MonoBehaviour
 	{
 		public SampleDriver(IntPtr pointer) : base(pointer)

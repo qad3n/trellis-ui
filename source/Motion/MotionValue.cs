@@ -18,7 +18,6 @@
 		internal float goal => m_goal;
 		internal float velocity => m_velocity;
 		internal bool atRest => m_phase == MotionPhase.Rest;
-		internal bool venting => m_phase == MotionPhase.Vent;
 
 		internal static MotionValue at(float value)
 		{
@@ -83,7 +82,7 @@
 
 		internal void vent(float goal, in MotionProfile profile) => ventAfter(goal, profile, 0f);
 
-		// the line is let go after a hold, a vent already pending keeps its original release step
+		// a vent already pending keeps its original release step
 		internal void ventAfter(float goal, in MotionProfile profile, float delaySeconds)
 		{
 			if (profile.m_instant)

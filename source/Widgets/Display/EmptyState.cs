@@ -63,11 +63,11 @@ namespace Trellis
 			float innerW = cardW - EmptyCard.kPadX * 2f;
 
 			// a wrapping copy so the shared value style is never flipped mid pass
-			GUIStyle messageStyle = Widgets.wrapStyle(Theme.valueLabel);
+			GUIStyle messageStyle = UiText.wrapStyle(Theme.valueLabel);
 
 			bool anyMessage = !string.IsNullOrEmpty(message);
 
-			float messageH = anyMessage ? Widgets.measuredHeight(messageStyle, message, innerW) : 0f;
+			float messageH = anyMessage ? UiText.measuredHeight(messageStyle, message, innerW) : 0f;
 
 			float cardH = EmptyCard.kPadTop + EmptyCard.kTitleH + (anyMessage ? EmptyCard.kGap + messageH : 0f) + extraH + EmptyCard.kPadBot;
 
@@ -79,13 +79,13 @@ namespace Trellis
 			Theme.drawTopAccent(cardRect, Theme.accentBar, 0f, EmptyCard.kStripeH);
 
 			float textY = cardY + EmptyCard.kPadTop;
-			Widgets.alignedLabel(RectMath.create(cardX + EmptyCard.kPadX, textY, innerW, EmptyCard.kTitleH), title, Theme.title, TextAnchor.MiddleCenter);
+			UiText.alignedLabel(RectMath.create(cardX + EmptyCard.kPadX, textY, innerW, EmptyCard.kTitleH), title, Theme.title, TextAnchor.MiddleCenter);
 
 			if (!anyMessage)
 				return;
 
 			textY += EmptyCard.kTitleH + EmptyCard.kGap;
-			Widgets.alignedLabel(RectMath.create(cardX + EmptyCard.kPadX, textY, innerW, messageH), message, messageStyle, TextAnchor.UpperCenter);
+			UiText.alignedLabel(RectMath.create(cardX + EmptyCard.kPadX, textY, innerW, messageH), message, messageStyle, TextAnchor.UpperCenter);
 		}
 	}
 }

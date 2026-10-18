@@ -42,7 +42,7 @@ namespace Trellis
 			internal const float kInlineShare = 0.5f;
 		}
 
-		// the menu pass only answers for dropdowns it opened, an overlay one must survive the hidden menu snapping its popups
+		// the menu pass only answers for its own dropdowns so an overlay one survives the hidden menu snapping popups
 		internal static bool menuDropdownOpen => Widgets.m_dropdownId != null && !Widgets.m_dropdownOverlay;
 		internal static bool menuDropdownLayered => !Widgets.m_dropdownOverlay && (Widgets.m_dropdownId != null || Live.frameCount == Widgets.m_dropdownFrame);
 		internal static bool overlayDropdownLayered => Widgets.m_dropdownOverlay && (Widgets.m_dropdownId != null || Live.frameCount == Widgets.m_dropdownFrame);
@@ -138,7 +138,7 @@ namespace Trellis
 
 					bool selected = i == Widgets.m_dropdownSelected;
 					Widgets.drawItemBg(itemRect, unchecked(animHash * Widgets.kKeyMix) ^ i, hovered, selected);
-					Widgets.fittedLabel(itemRect, Widgets.m_dropdownLabels[i], Theme.dropdownItem, TextAnchor.MiddleLeft);
+					UiText.fittedLabel(itemRect, Widgets.m_dropdownLabels[i], Theme.dropdownItem, TextAnchor.MiddleLeft);
 				}
 			}
 		}
@@ -175,7 +175,7 @@ namespace Trellis
 			return result;
 		}
 
-		// overlay windows have no block, the id must be stable across passes
+		// overlay windows have no block so the id must be stable across passes
 		internal static int drawDropdownAt(float x, float y, float w, string id, string label, string[] options, int selectedIndex, string tooltip = null)
 		{
 			Vector2 prevOffset = MenuHost.m_blockOffset;
@@ -212,7 +212,7 @@ namespace Trellis
 
 			bool rowHovered = Widgets.hoverRow(rowRect, tooltip);
 
-			Widgets.fittedLabel(labelRect, Widgets.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+			UiText.fittedLabel(labelRect, UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 			return buttonRect;
 		}
 
@@ -262,7 +262,7 @@ namespace Trellis
 			return labels;
 		}
 
-		private static string dropdownCaption(string display) => Widgets.markup(Widgets.kDropdownCaptions, display, string.Empty, DropdownLayout.kCaret, false);
+		private static string dropdownCaption(string display) => UiText.cachedMarkup(Widgets.kDropdownCaptions, display, string.Empty, DropdownLayout.kCaret, false);
 		private static string optionLabel(string[] options, int index) => index >= 0 && index < options.Length ? options[index] : DropdownLayout.kNoSelection;
 
 		private static int dropdownButton(Rect buttonRect, string id, float anchorX, float y, float buttonW, string[] options, int selectedIndex)
@@ -364,6 +364,9 @@ namespace Trellis
 			Widgets.kItemWidths[options] = result;
 			return result;
 		}
+
+		// width a dropdown row needs before its label starts shrinking
+		internal static float dropdownRowWidth(string label, string[] options) => UiText.measuredWidth(Theme.label, UiText.bold(label)) + DropdownLayout.kLabelGap + FastMath.max(MenuHost.kDropdownMaxW, Widgets.measureOptions(options));
 
 		private static float buttonWidth(float w, float contentW, float reserveRight = 0f)
 		{

@@ -31,7 +31,7 @@ namespace Trellis
 
 				Rect tabRect = RectMath.create(tabX, y, tabW, Widgets.kSubTabH);
 
-				string label = Widgets.markup(Widgets.kUpperTabs, names[i], string.Empty, string.Empty, true);
+				string label = UiText.cachedMarkup(Widgets.kUpperTabs, names[i], string.Empty, string.Empty, true);
 				if (!(Widgets.scaledButton(tabRect, label, style, MenuHost.mousePosition) && i != selected))
 					continue;
 

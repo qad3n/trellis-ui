@@ -12,6 +12,7 @@ namespace Trellis
 		private const int kMinCandidate = 2;
 		internal const float kContentPad = Layout.kBlockPad;
 		private const float kNoteGap = 4f;
+		private const int kPageBase = 1 << 20;
 
 		internal static readonly Vector2 kOffscreenMouse = VectorMath.v2(-9999f, -9999f);
 		private static readonly Dictionary<int, BlockMeasure> kBlockMeasures = new Dictionary<int, BlockMeasure>();
@@ -19,10 +20,8 @@ namespace Trellis
 		private static readonly Dictionary<int, int> kStickyCaps = new Dictionary<int, int>();
 		private static readonly Dictionary<int, DrawnPartition> kDrawnPartitions = new Dictionary<int, DrawnPartition>();
 
-		// keyed on the static column table reference, so it stays as small as the set of pinned pages
-		private static readonly ConditionalWeakTable<Array, int[]> kBlockKeys = new ConditionalWeakTable<Array, int[]>();
-		private static readonly ConditionalWeakTable<Array, int[][]> kColumnKeys = new ConditionalWeakTable<Array, int[][]>();
-		private static readonly List<BlockDraw> kDrawers = new List<BlockDraw>();
+		// keyed on the static table reference so it stays as small as the set of pinned pages
+		private static readonly List<BlockDraw> kPageDrawers = new List<BlockDraw>();
 		private static readonly Dictionary<(int[][] columns, int cols), PinnedLayout> kPinnedLayouts = new Dictionary<(int[][] columns, int cols), PinnedLayout>();
 
 		private static float m_viewTop;
@@ -179,25 +178,15 @@ namespace Trellis
 			}
 		}
 
-		// a block list is a static table, it is converted once and held for as long as the table lives
-		internal static float drawBlocks<TBlock>(float w, float baseY, params TBlock[] blocks) where TBlock : unmanaged, Enum => blocks == null ? baseY : MenuHost.layoutBlocks(w, baseY, MenuHost.keysOf(blocks));
-
-		internal static float drawColumns<TBlock>(float w, float baseY, TBlock[][] columns) where TBlock : unmanaged, Enum => MenuHost.layoutColumns(w, baseY, MenuHost.keysOf(columns));
-
-		internal static void addBlocks<TBlock>((TBlock id, BlockDraw draw)[] rows) where TBlock : unmanaged, Enum
+		// page blocks get ids far above any host enum so the two never collide
+		internal static int addPageBlock(BlockDraw draw)
 		{
-			foreach ((TBlock id, BlockDraw draw) in rows)
-			{
-				int index = MenuHost.key(id);
-				while (MenuHost.kDrawers.Count <= index)
-					MenuHost.kDrawers.Add(null);
-
-				if (MenuHost.kDrawers[index] != null)
-					throw new InvalidOperationException($"menu block {index} has two draw rows");
-
-				MenuHost.kDrawers[index] = draw;
-			}
+			MenuHost.kPageDrawers.Add(draw);
+			return MenuHost.kPageBase + MenuHost.kPageDrawers.Count - 1;
 		}
+
+		internal static float drawPage(float w, float baseY, int[] blocks) => MenuHost.layoutBlocks(w, baseY, blocks);
+		internal static float drawPageColumns(float w, float baseY, int[][] columns) => MenuHost.layoutColumns(w, baseY, columns);
 
 		internal static int key<TBlock>(TBlock id) where TBlock : unmanaged, Enum => Unsafe.SizeOf<TBlock>() == sizeof(int) ? Unsafe.As<TBlock, int>(ref id) : Convert.ToInt32(id);
 
@@ -339,7 +328,7 @@ namespace Trellis
 		}
 
 		// columns that do not fit drop each block onto the shortest column instead of piling onto the last one
-		// a block only looks at the blocks before it, so opening a drawer never moves the block it lives in
+		// a block only looks at earlier blocks so opening a drawer never moves its own block
 		private static int[] placeOverflow(int[] blocks, int[] declared, int cols)
 		{
 			int[] colAssignments = new int[blocks.Length];
@@ -367,14 +356,14 @@ namespace Trellis
 			Widgets.endRow(ref y, ref row);
 		}
 
-		internal static void drawStatus(ref float y, float w, string text) => MenuHost.drawWrapped(ref y, w, Widgets.small(text), Theme.statusLabel, MenuHost.kNoteGap);
-		internal static void drawNote(ref float y, float w, string text) => MenuHost.drawWrapped(ref y, w, Widgets.small(text), Theme.valueLabel, MenuHost.kNoteGap);
-		internal static void drawNote(ref float y, float w, string text, Color tone) => MenuHost.drawWrapped(ref y, w, Widgets.tinted(Widgets.small(text), tone), Theme.valueLabel, MenuHost.kNoteGap);
+		internal static void drawStatus(ref float y, float w, string text) => MenuHost.drawWrapped(ref y, w, UiText.small(text), Theme.statusLabel, MenuHost.kNoteGap);
+		internal static void drawNote(ref float y, float w, string text) => MenuHost.drawWrapped(ref y, w, UiText.small(text), Theme.valueLabel, MenuHost.kNoteGap);
+		internal static void drawNote(ref float y, float w, string text, Color tone) => MenuHost.drawWrapped(ref y, w, UiText.tinted(UiText.small(text), tone), Theme.valueLabel, MenuHost.kNoteGap);
 
 		internal static void drawWrapped(ref float y, float w, string text, GUIStyle baseStyle = null, float gap = Widgets.kFieldGap)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, Widgets.RowPrefix.kLabel, null);
-			Widgets.wrappedLabel(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, text, baseStyle ?? Theme.label, out float height);
+			UiText.wrappedLabel(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, text, baseStyle ?? Theme.label, out float height);
 			y += height + gap;
 			Widgets.endRow(ref y, ref row);
 		}
@@ -1120,35 +1109,11 @@ namespace Trellis
 		private static float fillBlock(int id, float w)
 		{
 			float y = 0f;
-			if (id >= 0 && id < MenuHost.kDrawers.Count)
-				MenuHost.kDrawers[id]?.Invoke(ref y, w);
+			int index = id - MenuHost.kPageBase;
+			if (index >= 0 && index < MenuHost.kPageDrawers.Count)
+				MenuHost.kPageDrawers[index].Invoke(ref y, w);
 			return y;
 		}
 
-		private static int[] keysOf<TBlock>(TBlock[] blocks) where TBlock : unmanaged, Enum
-		{
-			if (MenuHost.kBlockKeys.TryGetValue(blocks, out int[] keys))
-				return keys;
-
-			keys = new int[blocks.Length];
-			for (int i = 0; i < blocks.Length; i++)
-				keys[i] = MenuHost.key(blocks[i]);
-
-			MenuHost.kBlockKeys.Add(blocks, keys);
-			return keys;
-		}
-
-		private static int[][] keysOf<TBlock>(TBlock[][] columns) where TBlock : unmanaged, Enum
-		{
-			if (MenuHost.kColumnKeys.TryGetValue(columns, out int[][] keys))
-				return keys;
-
-			keys = new int[columns.Length][];
-			for (int c = 0; c < columns.Length; c++)
-				keys[c] = columns[c] == null ? null : MenuHost.keysOf(columns[c]);
-
-			MenuHost.kColumnKeys.Add(columns, keys);
-			return keys;
-		}
 	}
 }

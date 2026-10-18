@@ -15,7 +15,7 @@ namespace Trellis
 			internal const float kStripeW = 3f;
 		}
 
-		// the mouse in the clip local space row callbacks draw in, offscreen when the list is not interactive
+		// the mouse in clip local space is offscreen when the list is not interactive
 		internal static Vector2 listMouse => Widgets.m_listMouse;
 
 		private static Vector2 m_listMouse;
@@ -135,7 +135,7 @@ namespace Trellis
 		{
 			Theme.drawLogBg(RectMath.create(x - SelectableListLayout.kBgInset, y - SelectableListLayout.kBgInset, w + SelectableListLayout.kBgInset, listH + SelectableListLayout.kBgInset * 2f));
 
-			Widgets.alignedLabel(RectMath.create(x, y, w, listH), message, Theme.valueLabel, TextAnchor.MiddleCenter);
+			UiText.alignedLabel(RectMath.create(x, y, w, listH), message, Theme.valueLabel, TextAnchor.MiddleCenter);
 		}
 
 		private static int rowAt(int count, Func<int, float> rowHeight, float localY)

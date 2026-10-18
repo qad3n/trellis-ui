@@ -29,7 +29,7 @@ namespace Trellis
 			Widgets.drawDots(rowX, rowY);
 
 			string label = string.IsNullOrEmpty(text) ? Widgets.kLoadingText : text;
-			Widgets.wrappedLabel(rowX + LoadingDots.kSpanW, rowY, w - LoadingDots.kSpanW, label, Theme.statusLabel, out float height);
+			UiText.wrappedLabel(rowX + LoadingDots.kSpanW, rowY, w - LoadingDots.kSpanW, label, Theme.statusLabel, out float height);
 			y += FastMath.max(Widgets.kLoadingH, height) + Widgets.kLoadingGap;
 			Widgets.endRow(ref y, ref row);
 		}

@@ -15,7 +15,7 @@ namespace Trellis
 			internal const int kHoverSalt = 0x0C41;
 		}
 
-		// wraps removable chips onto as many lines as the width needs, returns the clicked index or -1
+		// returns the clicked chip index or -1
 		internal static int drawChipFlow(ref float y, float w, IReadOnlyList<string> labels, Color color, string tooltip = null)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kChips, null);
@@ -24,7 +24,7 @@ namespace Trellis
 
 			float top = MenuHost.m_blockOffset.y + y;
 
-			float lineH = Widgets.kBadgeHeight + ChipFlow.kLineGap;
+			float lineH = Badges.kHeight + ChipFlow.kLineGap;
 
 			float x = 0f;
 
@@ -33,21 +33,21 @@ namespace Trellis
 			int clicked = -1;
 			for (int i = 0; i < labels.Count; i++)
 			{
-				float chipW = FastMath.min(w, Widgets.badgeWidth(labels[i]) + ChipFlow.kRemoveW);
+				float chipW = FastMath.min(w, Badges.width(labels[i]) + ChipFlow.kRemoveW);
 				if (x > 0f && x + chipW > w)
 				{
 					x = 0f;
 					lineY += lineH;
 				}
 
-				Rect chip = RectMath.create(offsetX + x, top + lineY, chipW, Widgets.kBadgeHeight);
+				Rect chip = RectMath.create(offsetX + x, top + lineY, chipW, Badges.kHeight);
 				if (Widgets.drawRemovableChip(chip, labels[i], color, tooltip))
 					clicked = i;
 
-				x += chipW + Widgets.kBadgeGap;
+				x += chipW + Badges.kGap;
 			}
 
-			y += lineY + Widgets.kBadgeHeight + Widgets.kFieldGap;
+			y += lineY + Badges.kHeight + Widgets.kFieldGap;
 			Widgets.endRow(ref y, ref row);
 			return clicked;
 		}
@@ -62,13 +62,13 @@ namespace Trellis
 
 			if (Gui.repainting && !MenuHost.rowCullable(RectMath.y(chip), RectMath.h(chip)))
 			{
-				Widgets.drawChip(chip, ColorMath.lerp(color, Theme.Text.m_primary, ChipFlow.kHoverLift * hoverT));
+				Badges.drawChip(chip, ColorMath.lerp(color, Theme.Text.m_primary, ChipFlow.kHoverLift * hoverT));
 
 				Rect text = RectMath.create(RectMath.x(chip), RectMath.y(chip), RectMath.w(chip) - ChipFlow.kRemoveW, RectMath.h(chip));
-				Widgets.fittedLabel(text, label, Theme.badgeLabel, TextAnchor.MiddleCenter);
+				UiText.fittedLabel(text, label, Theme.badgeLabel, TextAnchor.MiddleCenter);
 
 				Rect remove = RectMath.create(RectMath.x(chip) + RectMath.w(chip) - ChipFlow.kRemoveW, RectMath.y(chip), ChipFlow.kRemoveW, RectMath.h(chip));
-				Widgets.fittedLabel(remove, ChipFlow.kRemoveMark, Theme.badgeLabel, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(remove, ChipFlow.kRemoveMark, Theme.badgeLabel, TextAnchor.MiddleLeft);
 			}
 			return hovered && MenuHost.mouseDown0;
 		}

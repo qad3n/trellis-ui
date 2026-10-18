@@ -1,53 +1,50 @@
-﻿using System.Reflection;
-
-namespace Trellis
+﻿namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class AnimationConfig
 	{
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xFA80D220AE577AA8)]
 		public static bool Enabled = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x71CB844AF744550E)]
 		public static float Speed = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x8143D0F041B0C771)]
 		public static bool ReducedMotion = false;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x734F82D3279F482D)]
 		public static float MotionAmount = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xB8CE8EA63AB2063E)]
 		public static float DimStrength = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x81D5285B6D14A088)]
 		public static bool HoverFeedback = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xC167D7F597061271)]
 		public static bool PressFeedback = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x93EDCA5D50F8FB4E)]
 		public static bool TabTransitions = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xC6BCCFC0597B1AE0)]
 		public static bool StaggerBlocks = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xFA5BA1C5E3F68747)]
 		public static bool ContainerShuffle = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xD845AED5934D4A49)]
 		public static bool PopupMotion = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x0EE1F451B0497678)]
 		public static bool SectionReveals = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xAF2249A9AD7E4868)]
 		public static bool SmoothScrolling = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x6C08F47FE8BD9BC9)]
 		public static bool WindowMotion = true;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xF5DEE02AAAECB9C8)]
 		public static bool TooltipMotion = true;
 
 		internal static class Limits

@@ -29,20 +29,6 @@ namespace Trellis
 		private static string[] m_cycleLabels;
 		private static bool m_multiSelectCycle;
 
-		internal readonly struct MultiSelectItemHint
-		{
-			internal readonly bool m_inactive;
-			internal readonly string m_note;
-			internal readonly string m_tooltip;
-
-			internal MultiSelectItemHint(bool inactive, string note, string tooltip = null)
-			{
-				m_inactive = inactive;
-				m_note = note;
-				m_tooltip = tooltip;
-			}
-		}
-
 		internal static MultiSelectItemHint[] tooltipHints(string[] tooltips) => RowTable.column(tooltips, Widgets.tooltipHint);
 		private static MultiSelectItemHint tooltipHint(string tooltip) => new MultiSelectItemHint(false, null, tooltip);
 
@@ -191,15 +177,15 @@ namespace Trellis
 
 					if (!string.IsNullOrEmpty(hint.m_note))
 					{
-						float noteW = Widgets.measuredWidth(Theme.valueLabel, hint.m_note);
+						float noteW = UiText.measuredWidth(Theme.valueLabel, hint.m_note);
 
 						float noteX = RectMath.xMax(itemRect) - HintLayout.kNotePad - noteW;
 
 						labelRight = noteX - HintLayout.kNoteGap;
 
-						Widgets.fittedLabel(RectMath.create(noteX, RectMath.y(itemRect), noteW, MenuHost.kDropdownItemH), hint.m_note, Theme.valueLabel, TextAnchor.MiddleLeft);
+						UiText.fittedLabel(RectMath.create(noteX, RectMath.y(itemRect), noteW, MenuHost.kDropdownItemH), hint.m_note, Theme.valueLabel, TextAnchor.MiddleLeft);
 					}
-					Widgets.fittedLabel(RectMath.create(labelX, RectMath.y(itemRect), FastMath.max(0f, labelRight - labelX), MenuHost.kDropdownItemH), Widgets.m_multiSelectOptions[i], Theme.dropdownItem, TextAnchor.MiddleLeft);
+					UiText.fittedLabel(RectMath.create(labelX, RectMath.y(itemRect), FastMath.max(0f, labelRight - labelX), MenuHost.kDropdownItemH), Widgets.m_multiSelectOptions[i], Theme.dropdownItem, TextAnchor.MiddleLeft);
 
 					Gui.color = prevColor;
 				}
@@ -452,8 +438,8 @@ namespace Trellis
 				if (neutral)
 					Gui.color = ColorMath.fade(prevColor, CycleLayout.kNeutralAlpha);
 
-				Widgets.fittedLabel(RectMath.create(labelX, RectMath.y(itemRect), labelW, MenuHost.kDropdownItemH), Widgets.m_multiSelectOptions[i], Theme.label, TextAnchor.MiddleLeft);
-				Widgets.fittedLabel(RectMath.create(statusX, RectMath.y(itemRect), statusW, MenuHost.kDropdownItemH), Widgets.m_cycleLabels[state], Theme.valueLabel, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(labelX, RectMath.y(itemRect), labelW, MenuHost.kDropdownItemH), Widgets.m_multiSelectOptions[i], Theme.label, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(statusX, RectMath.y(itemRect), statusW, MenuHost.kDropdownItemH), Widgets.m_cycleLabels[state], Theme.valueLabel, TextAnchor.MiddleLeft);
 
 				Gui.color = prevColor;
 			}
@@ -483,11 +469,11 @@ namespace Trellis
 			float widest = 0f;
 			for (int i = 0; i < options.Length; i++)
 			{
-				float optionWidth = Widgets.measuredWidth(Theme.dropdownItem, options[i]) + prefix;
+				float optionWidth = UiText.measuredWidth(Theme.dropdownItem, options[i]) + prefix;
 
 				string note = Widgets.hintAt(i).m_note;
 				if (!string.IsNullOrEmpty(note))
-					optionWidth += HintLayout.kNoteGap + Widgets.measuredWidth(Theme.valueLabel, note) + HintLayout.kNotePad;
+					optionWidth += HintLayout.kNoteGap + UiText.measuredWidth(Theme.valueLabel, note) + HintLayout.kNotePad;
 				if (!(optionWidth > widest))
 					continue;
 
@@ -501,7 +487,7 @@ namespace Trellis
 			float widest = 0f;
 			for (int i = 0; i < Widgets.m_cycleLabels.Length; i++)
 			{
-				float statusW = Widgets.measuredWidth(Theme.valueLabel, Widgets.m_cycleLabels[i]);
+				float statusW = UiText.measuredWidth(Theme.valueLabel, Widgets.m_cycleLabels[i]);
 				if (!(statusW > widest))
 					continue;
 
@@ -515,7 +501,7 @@ namespace Trellis
 			float widestLabel = 0f;
 			foreach (string option in options)
 			{
-				float labelW = Widgets.measuredWidth(Theme.label, option);
+				float labelW = UiText.measuredWidth(Theme.label, option);
 				if (!(labelW > widestLabel))
 					continue;
 

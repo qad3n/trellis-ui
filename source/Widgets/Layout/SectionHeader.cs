@@ -22,16 +22,20 @@ namespace Trellis
 		private static class DisclosureLayout
 		{
 			internal const float kH = 20f;
-			internal const float kIndentX = 4f;
+			internal const float kCaretInset = 1f;
 			internal const float kCaretBox = 10f;
-			internal const float kCaretGap = 7f;
+			internal const float kCaretGap = 6f;
+			internal const float kRuleGap = 8f;
+			internal const float kRuleH = 1f;
 			internal const float kBottomGap = 6f;
+			internal const float kBodyIndent = 14f;
+			internal const float kRailW = 1f;
 			internal const float kHoverEpsilon = 0.001f;
 		}
 
 		private static float disclosureHeight => DisclosureLayout.kH + DisclosureLayout.kBottomGap;
 
-		// trailing names what the block is editing, right aligned in the header
+		// the trailing text names what the block edits
 		internal static void drawSectionHeader(ref float y, float w, string text, string tooltip = null, string trailing = null)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kHeader, null);
@@ -55,72 +59,118 @@ namespace Trellis
 				if (hovered)
 					Gui.drawTextureSnapped(rect, Theme.disclosureHover);
 
-				Widgets.fittedLabel(RectMath.create(RectMath.x(rect) + SectionHeaderLayout.kPadX, RectMath.y(rect), RectMath.w(rect) - SectionHeaderLayout.kPadX - trailingW, RectMath.h(rect)), text, Theme.sectionHeader, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(RectMath.x(rect) + SectionHeaderLayout.kPadX, RectMath.y(rect), RectMath.w(rect) - SectionHeaderLayout.kPadX - trailingW, RectMath.h(rect)), text, Theme.sectionHeader, TextAnchor.MiddleLeft);
 
 				Gui.drawStroke(Gui.bottomEdge(rect, SectionHeaderLayout.kBorderH), Theme.titleAccent);
 			}
 
 			if (trailingW > 0f)
-				Widgets.ellipsizedLabel(RectMath.create(RectMath.xMax(rect) - trailingW, RectMath.y(rect), trailingW - SectionHeaderLayout.kPadX, RectMath.h(rect)), trailing, Theme.valueLabel, TextAnchor.MiddleRight);
+				UiText.ellipsizedLabel(RectMath.create(RectMath.xMax(rect) - trailingW, RectMath.y(rect), trailingW - SectionHeaderLayout.kPadX, RectMath.h(rect)), trailing, Theme.valueLabel, TextAnchor.MiddleRight);
 		}
 
-		internal static MenuAnimation.SectionScope beginDisclosure(ref float y, float w, string animId, string text, ref bool expanded, string bodyKey, bool locked = false)
+		internal static MenuAnimation.SectionScope beginDisclosure(ref float y, ref float w, string animId, string text, ref bool expanded, string bodyKey, bool locked = false, string trailing = null)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kDisclosure, animId);
 
 			Widgets.beginDisabled(locked);
 
-			Rect headerRect = RectMath.create(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, SectionHeaderLayout.kH);
-			if (Widgets.drawCollapsibleHeader(headerRect, animId, text, expanded))
+			Rect headerRect = RectMath.create(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, DisclosureLayout.kH);
+			if (Widgets.drawCollapsibleHeader(headerRect, animId, text, expanded, trailing))
 				expanded = !expanded;
 
 			Widgets.endDisabled();
 
 			y += Widgets.disclosureHeight;
 			Widgets.endRow(ref y, ref row);
-			return MenuAnimation.beginSection(ref y, bodyKey, expanded && !locked);
+
+			MenuAnimation.SectionScope body = MenuAnimation.beginSection(ref y, bodyKey, expanded && !locked);
+			if (body.m_render)
+				Widgets.indentBody(ref w, DisclosureLayout.kBodyIndent);
+			return body;
+		}
+
+		// the indent comes off before the section pops its clip so the restored offset stays exact
+		internal static void endDisclosure(ref float y, ref float w, MenuAnimation.SectionScope body)
+		{
+			if (body.m_render)
+				Widgets.indentBody(ref w, -DisclosureLayout.kBodyIndent);
+
+			MenuAnimation.endSection(ref y, body);
+
+			if (body.m_render)
+				Widgets.drawDisclosureRail(body.m_startY, y, body.m_layoutProgress);
 		}
 
 		// a widgetId outside a block pass advances every pass and never eases
-		internal static bool drawCollapsibleHeader(Rect rect, string animId, string text, bool expanded)
+		internal static bool drawCollapsibleHeader(Rect rect, string animId, string text, bool expanded, string trailing = null)
 		{
-			bool interactive = Gui.enabled;
+			Rect row = RectMath.create(RectMath.x(rect), RectMath.y(rect), RectMath.w(rect), DisclosureLayout.kH);
 
-			Rect row = RectMath.create(RectMath.x(rect) + DisclosureLayout.kIndentX, RectMath.y(rect), RectMath.w(rect) - DisclosureLayout.kIndentX, DisclosureLayout.kH);
-
-			bool hovered = interactive && RectMath.contains(row, MenuHost.scrollMouse);
+			bool hovered = Gui.enabled && RectMath.contains(row, MenuHost.scrollMouse);
 
 			float open = MenuAnimation.disclosureProgress(animId, expanded);
 
 			float hoverT = MenuAnimation.disclosureHover(animId, hovered);
 			if (Gui.repainting)
+				Widgets.drawDisclosureRow(row, text, trailing, open, FastMath.max(open, hoverT));
+			return hovered && MenuHost.mouseDown0;
+		}
+
+		// the label brightens while open or hovered so a folded header reads as a quiet divider
+		private static void drawDisclosureRow(Rect row, string text, string trailing, float open, float lit)
+		{
+			Rect caretRect = RectMath.create(RectMath.x(row) + DisclosureLayout.kCaretInset, RectMath.y(row) + LayoutMath.centerOffset(RectMath.h(row), DisclosureLayout.kCaretBox), DisclosureLayout.kCaretBox, DisclosureLayout.kCaretBox);
+			Widgets.drawCaret(caretRect, open, lit);
+
+			float trailingW = string.IsNullOrEmpty(trailing) ? 0f : FastMath.min(UiText.measuredWidth(Theme.valueLabel, trailing), RectMath.w(row) * SectionHeaderLayout.kTrailingShare) + DisclosureLayout.kRuleGap;
+
+			float labelX = RectMath.xMax(caretRect) + DisclosureLayout.kCaretGap;
+
+			float labelW = FastMath.max(0f, FastMath.min(UiText.measuredWidth(Theme.valueLabel, text), RectMath.xMax(row) - trailingW - labelX));
+
+			Rect labelRect = RectMath.create(labelX, RectMath.y(row), labelW, RectMath.h(row));
+			UiText.fittedLabel(labelRect, text, Theme.valueLabel, TextAnchor.MiddleLeft);
+
+			if (lit > DisclosureLayout.kHoverEpsilon)
 			{
 				Color prev = Gui.color;
-				if (hoverT > DisclosureLayout.kHoverEpsilon)
-				{
-					Gui.color = ColorMath.fade(prev, hoverT);
-					Gui.drawTextureSnapped(row, Theme.disclosureHover);
-					Gui.color = prev;
-				}
+				Gui.color = ColorMath.fade(prev, lit);
 
-				Rect caretRect = RectMath.create(RectMath.x(row) + DisclosureLayout.kCaretGap, RectMath.y(row) + LayoutMath.centerOffset(RectMath.h(row), DisclosureLayout.kCaretBox), DisclosureLayout.kCaretBox, DisclosureLayout.kCaretBox);
-				Widgets.drawCaret(caretRect, open, hoverT);
+				UiText.fittedLabel(labelRect, text, Theme.label, TextAnchor.MiddleLeft);
 
-				float labelX = RectMath.xMax(caretRect) + DisclosureLayout.kCaretGap;
-
-				Rect labelRect = RectMath.create(labelX, RectMath.y(row), RectMath.xMax(row) - labelX, RectMath.h(row));
-				Widgets.fittedLabel(labelRect, text, Theme.valueLabel, TextAnchor.MiddleLeft);
-
-				if (hoverT > DisclosureLayout.kHoverEpsilon)
-				{
-					Gui.color = ColorMath.fade(prev, hoverT);
-
-					Widgets.fittedLabel(labelRect, text, Theme.label, TextAnchor.MiddleLeft);
-
-					Gui.color = prev;
-				}
+				Gui.color = prev;
 			}
-			return hovered && MenuHost.mouseDown0;
+
+			float ruleX = RectMath.xMax(labelRect) + DisclosureLayout.kRuleGap;
+
+			float ruleW = RectMath.xMax(row) - trailingW - ruleX;
+			if (ruleW > 0f)
+				Gui.drawStroke(RectMath.create(ruleX, RectMath.y(row) + (RectMath.h(row) - DisclosureLayout.kRuleH) * 0.5f, ruleW, DisclosureLayout.kRuleH), Theme.divider);
+
+			if (trailingW > 0f)
+				UiText.ellipsizedLabel(RectMath.create(RectMath.xMax(row) - trailingW + DisclosureLayout.kRuleGap, RectMath.y(row), trailingW - DisclosureLayout.kRuleGap, RectMath.h(row)), trailing, Theme.valueLabel, TextAnchor.MiddleRight);
+		}
+
+		// the rail hangs under the caret and spans the body down to its last row
+		private static void drawDisclosureRail(float top, float bottom, float progress)
+		{
+			float railH = bottom - top - Widgets.kFieldGap;
+			if (!(railH > 0f))
+				return;
+
+			Color prev = Gui.color;
+			Gui.color = ColorMath.fade(prev, progress);
+
+			float railX = DisclosureLayout.kCaretInset + (DisclosureLayout.kCaretBox - DisclosureLayout.kRailW) * 0.5f;
+			Gui.drawStroke(RectMath.create(MenuHost.m_blockOffset.x + railX, MenuHost.m_blockOffset.y + top, DisclosureLayout.kRailW, railH), Theme.divider);
+
+			Gui.color = prev;
+		}
+
+		private static void indentBody(ref float w, float indent)
+		{
+			MenuHost.m_blockOffset.x += indent;
+			w -= indent;
 		}
 
 		// the title and rule line stop short of this so the trailing text never overlaps them
@@ -129,7 +179,7 @@ namespace Trellis
 			if (string.IsNullOrEmpty(trailing))
 				return 0f;
 
-			return FastMath.min(Widgets.measuredWidth(Theme.valueLabel, trailing), RectMath.w(rect) * SectionHeaderLayout.kTrailingShare) + SectionHeaderLayout.kPadX + SectionHeaderLayout.kRuleGap;
+			return FastMath.min(UiText.measuredWidth(Theme.valueLabel, trailing), RectMath.w(rect) * SectionHeaderLayout.kTrailingShare) + SectionHeaderLayout.kPadX + SectionHeaderLayout.kRuleGap;
 		}
 
 		private static void drawTacticalHeader(Rect rect, string text, bool hovered)
@@ -137,12 +187,12 @@ namespace Trellis
 			if (!Gui.repainting)
 				return;
 
-			string upper = Widgets.markup(Widgets.kUpperHeaders, text, string.Empty, string.Empty, true);
+			string upper = UiText.cachedMarkup(Widgets.kUpperHeaders, text, string.Empty, string.Empty, true);
 
 			GUIStyle style = hovered ? Theme.tacticalHover : Theme.tacticalHeader;
 
-			float labelW = FastMath.min(Widgets.measuredWidth(style, upper), RectMath.w(rect));
-			Widgets.fittedLabel(RectMath.create(RectMath.x(rect), RectMath.y(rect), labelW, RectMath.h(rect)), upper, style, TextAnchor.MiddleLeft);
+			float labelW = FastMath.min(UiText.measuredWidth(style, upper), RectMath.w(rect));
+			UiText.fittedLabel(RectMath.create(RectMath.x(rect), RectMath.y(rect), labelW, RectMath.h(rect)), upper, style, TextAnchor.MiddleLeft);
 
 			float ruleX = RectMath.x(rect) + labelW + SectionHeaderLayout.kRuleGap;
 

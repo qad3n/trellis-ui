@@ -32,9 +32,15 @@
 			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kHand.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, false, !(animate && MotionProfile.bodiesMove));
 		}
 
-		internal static MotionProfile light(bool animate) => MotionProfile.lightOver(MotionTokens.kAnchorLoad.m_extentPx, animate);
+		internal static MotionProfile glide(float extentPx, bool animate)
+		{
+			float seconds = MotionMath.frameSeconds(MotionTokens.kAnchorLoad.m_settleSeconds, MotionTokens.kAnchorLoad.m_extentPx, extentPx) / MotionProfile.speed;
+			return new MotionProfile(MotionMath.criticalOmega(seconds), MotionTokens.kRail.m_damping, MotionProfile.ventAcceleration(1f), MotionTokens.kSolver.m_restPx, false, !(animate && MotionProfile.bodiesMove));
+		}
 
-		internal static MotionProfile release(float extentPx, bool animate) => MotionProfile.lightOver(FastMath.max(extentPx, MotionTokens.kAnchorLoad.m_extentPx), animate);
+		internal static MotionProfile light(bool animate) => MotionProfile.lightOver(MotionTokens.kLightLoad.m_extentPx, animate);
+
+		internal static MotionProfile release(float extentPx, bool animate) => MotionProfile.lightOver(FastMath.max(extentPx, MotionTokens.kLightLoad.m_extentPx), animate);
 
 		internal static MotionProfile frameLight(float extentPx, bool animate)
 		{
@@ -44,7 +50,7 @@
 			return new MotionProfile(omega, MotionTokens.kLight.m_damping, MotionMath.ventAcceleration(1f, seconds), MotionTokens.kSolver.m_restLight, false, !(animate && AnimationConfig.Enabled));
 		}
 
-		internal static float releaseSeconds(float extentPx) => MotionMath.ventSeconds(FastMath.max(extentPx, MotionTokens.kAnchorLoad.m_extentPx), MotionTokens.kVentAcceleration * MotionProfile.speed * MotionProfile.speed);
+		internal static float releaseSeconds(float extentPx) => MotionMath.ventSeconds(FastMath.max(extentPx, MotionTokens.kLightLoad.m_extentPx), MotionTokens.kLightVentAcceleration * MotionProfile.speed * MotionProfile.speed);
 
 		private static MotionProfile cable(float extentPx, float unitPx, bool endStop, bool animate)
 		{
@@ -57,7 +63,7 @@
 		private static MotionProfile lightOver(float spanPx, bool animate)
 		{
 			bool instant = !(animate && AnimationConfig.Enabled);
-			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kLight.m_damping, MotionProfile.ventAcceleration(spanPx), MotionTokens.kSolver.m_restLight, false, instant);
+			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kLight.m_damping, MotionTokens.kLightVentAcceleration * MotionProfile.speed * MotionProfile.speed / spanPx, MotionTokens.kSolver.m_restLight, false, instant);
 		}
 
 		private static float ventAcceleration(float unitPx) => MotionTokens.kVentAcceleration * MotionProfile.speed * MotionProfile.speed / unitPx;

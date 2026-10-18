@@ -11,7 +11,7 @@ namespace Trellis
 		private const float kStepScale = 10f;
 		private const string kSliderControl = "SliderEdit";
 		private const string kResetText = "Reset";
-		private const float kIntStep = 1f;
+		internal const float kIntStep = 1f;
 		private const float kPercentPerUnit = 100f;
 		private const string kMultiplierFormat = "F2";
 		private const int kMaxCached = 512;
@@ -251,7 +251,7 @@ namespace Trellis
 			bool entering = Widgets.openSliderEdit(sliderId, labelRect, MenuHost.scrollMouse, MenuHost.mouseDown0, value);
 			if (Widgets.sliderEditing(sliderId))
 			{
-				Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, SliderLayout.kEditH), Widgets.markup(Widgets.kEditCaptions, label, "<b>", "</b>:", false), Theme.label, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(RectMath.create(offsetX, offsetY + y, MenuHost.kLabelW, SliderLayout.kEditH), UiText.cachedMarkup(Widgets.kEditCaptions, label, "<b>", "</b>:", false), Theme.label, TextAnchor.MiddleLeft);
 
 				Rect editRect = RectMath.create(offsetX + MenuHost.kLabelW, offsetY + y, w - MenuHost.kLabelW, SliderLayout.kEditH);
 				value = Widgets.drawSliderEdit(editRect, MenuHost.scrollMouse, MenuHost.mouseDown0, entering, value, min, max, sliderId, true);
@@ -268,7 +268,7 @@ namespace Trellis
 			bool rowHovered = Widgets.hoverRow(rowRect, tooltip);
 
 			if (Gui.repainting && display != null)
-				Widgets.fittedLabel(labelRect, Widgets.captionFor(label, display), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
+				UiText.fittedLabel(labelRect, Widgets.captionFor(label, display), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
 			if (overridden)
 				value = Widgets.drawReset(sliderId, RectMath.create(offsetX + w - SliderLayout.kResetW, offsetY + y, SliderLayout.kResetW, labelH), value, min, max);
@@ -307,7 +307,7 @@ namespace Trellis
 			if (Widgets.kSliderCaptions.tryGetValue(key, out string cached))
 				return cached;
 
-			string caption = $"{Widgets.bold(label)}: <color={Theme.Hex.kTextSecondary}>{display}</color>";
+			string caption = $"{UiText.bold(label)}: <color={Theme.Hex.kTextSecondary}>{display}</color>";
 			Widgets.kSliderCaptions.set(key, caption);
 			return caption;
 		}

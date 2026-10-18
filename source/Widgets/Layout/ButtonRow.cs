@@ -11,24 +11,6 @@ namespace Trellis
 		private const float kRowEndGap = 6f;
 		private const int kNoClick = -1;
 
-		internal readonly struct ActionButton
-		{
-			internal readonly string m_label;
-			internal readonly GUIStyle m_style;
-			internal readonly Action m_onClick;
-			internal readonly bool m_disabled;
-			internal readonly string m_tooltip;
-
-			internal ActionButton(string label, GUIStyle style, Action onClick, bool disabled = false, string tooltip = null)
-			{
-				m_label = label;
-				m_style = style;
-				m_onClick = onClick;
-				m_disabled = disabled;
-				m_tooltip = tooltip;
-			}
-		}
-
 		internal static void drawButton(ref float y, float w, string label, GUIStyle style, Action onClick, string tooltip = null)
 		{
 			MenuRowFlow.RowScope row = Widgets.beginRow(ref y, RowPrefix.kButton, null);

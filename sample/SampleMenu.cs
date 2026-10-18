@@ -2,61 +2,72 @@
 
 namespace TrellisSample
 {
-	internal enum SampleBlock
+	internal enum SampleMode
 	{
-		Welcome,
-		Options,
-		Danger
+		Calm,
+		Busy
 	}
 
 	internal static class SampleMenu
 	{
 		internal const KeyCode kToggleKey = KeyCode.F1;
 
-		// blocks pack into as many columns as the window fits
-		private static readonly SampleBlock[] kMainBlocks = new[] { SampleBlock.Welcome, SampleBlock.Options, SampleBlock.Danger };
-
-		private static readonly (SampleBlock id, BlockDraw draw)[] kBlocks = new (SampleBlock id, BlockDraw draw)[] { (SampleBlock.Welcome, SampleMenu.drawWelcome), (SampleBlock.Options, SampleMenu.drawOptions), (SampleBlock.Danger, SampleMenu.drawDanger) };
-
 		private static readonly string[] kModes = new[] { "Calm", "Busy" };
+
+		// blocks pack into as many columns as the window fits
+		private static readonly Page kMain = Ui.page(SampleMenu.drawWelcome, SampleMenu.drawOptions, SampleMenu.drawDanger);
 
 		private static bool m_enabled = true;
 		private static float m_speed = 1f;
-		private static int m_mode;
+		private static SampleMode m_mode;
+		private static KeyChord m_boostKey = new KeyChord(KeyCode.LeftShift);
 
 		internal static void install()
 		{
 			MenuHost.setTitle("<b>SAMPLE</b>", "Trellis");
-			MenuHost.setTabs(new[] { new TabRow("MAIN", (w, viewH) => MenuHost.drawBlocks(w, 0f, SampleMenu.kMainBlocks)) });
-			MenuHost.addBlocks(SampleMenu.kBlocks);
+			MenuHost.setTabs(new[] { new TabRow("MAIN", SampleMenu.kMain.draw) });
 			MenuHost.setToggle(key => key == SampleMenu.kToggleKey);
 		}
 
-		private static void drawWelcome(ref float y, float w)
+		private static void drawWelcome()
 		{
-			Widgets.drawSectionHeader(ref y, w, "Welcome");
-			MenuHost.drawNote(ref y, w, "Every block is a draw function. Rows stack down from y.");
+			Ui.header("Welcome");
+			Ui.note("Every block is a plain method. Widgets stack down on their own.");
+
+			using (Ui.Row bar = Ui.row(6f))
+				Gui.drawTexture(bar.rect, Theme.accentBar);
 		}
 
-		private static void drawOptions(ref float y, float w)
+		private static void drawOptions()
 		{
-			Widgets.drawSectionHeader(ref y, w, "Options");
-			SampleMenu.m_enabled = Widgets.drawToggle(ref y, w, SampleMenu.m_enabled, "Enabled", tooltip: "A plain toggle row.");
-			SampleMenu.m_speed = Widgets.drawSlider(ref y, w, "Speed", SampleMenu.m_speed, 0f, 4f);
-			SampleMenu.m_mode = Widgets.drawDropdown(ref y, w, "Mode", SampleMenu.kModes, SampleMenu.m_mode);
+			Ui.header("Options");
+			Ui.toggle(ref SampleMenu.m_enabled, "Enabled", "A plain toggle row.");
+
+			using (Ui.Reveal open = Ui.reveal(SampleMenu.m_enabled))
+			{
+				if (!open)
+					return;
+
+				Ui.slider(ref SampleMenu.m_speed, "Speed", 0f, 4f);
+				Ui.dropdown(ref SampleMenu.m_mode, "Mode", SampleMenu.kModes);
+				Ui.keybind(ref SampleMenu.m_boostKey, "Boost Key");
+			}
 		}
 
-		private static void drawDanger(ref float y, float w)
+		private static void drawDanger()
 		{
-			Widgets.drawSectionHeader(ref y, w, "Danger");
-			Widgets.drawButton(ref y, w, "Reset", Theme.dangerButton, () => MenuHost.showConfirm("Reset every option?", SampleMenu.reset));
+			Ui.header("Danger");
+
+			using (Ui.disabled(!SampleMenu.m_enabled))
+				Ui.button("Reset", () => MenuHost.showConfirm("Reset every option?", SampleMenu.reset));
 		}
 
 		private static void reset()
 		{
 			SampleMenu.m_enabled = true;
 			SampleMenu.m_speed = 1f;
-			SampleMenu.m_mode = 0;
+			SampleMenu.m_mode = SampleMode.Calm;
+			SampleMenu.m_boostKey = new KeyChord(KeyCode.LeftShift);
 		}
 	}
 }

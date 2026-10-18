@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Trellis
 {
-	// class level obfuscation exclusion is needed since config keys carry the type name
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class GraphicsInfo
 	{
 		internal static readonly string[] kModeNames = new[] { "Auto", "Off", "Colors", "sRGB Write" };
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xAB1212C67E65CFB4)]
 		public static GuiColorMode GuiColorCorrection = GuiColorMode.Auto;
 
 		private static bool m_resolved;

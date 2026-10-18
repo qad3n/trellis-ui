@@ -4,7 +4,7 @@
 	{
 		// ln 50 so the envelope is down to 2 percent
 		private const float kSettleEnvelope = 3.91202307f;
-		// (1 + x) e^-x = 0.02, the critically damped settle to 2 percent
+		// solves (1 + x) e^-x = 0.02 for a critically damped settle to 2 percent
 		private const float kCriticalSettle = 5.8335f;
 		// the usual 1 plus 0.7 zeta fit
 		private const float kRiseDamping = 0.7f;

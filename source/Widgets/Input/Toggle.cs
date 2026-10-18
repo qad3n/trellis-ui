@@ -176,7 +176,7 @@ namespace Trellis
 
 			float labelW = wraps ? FastMath.min(labelWidth, maxW) : labelWidth;
 
-			float labelH = wraps ? Widgets.measuredHeight(labelStyle, label, labelContent, labelW) : Widgets.kToggleSize;
+			float labelH = wraps ? UiText.measuredHeight(labelStyle, label, labelContent, labelW) : Widgets.kToggleSize;
 			rowH = FastMath.max(Widgets.kToggleSize, labelH);
 
 			Rect labelRect = RectMath.create(baseX + Widgets.kToggleSize + Widgets.kToggleGap, baseY + Widgets.kToggleNudgeY, labelW, labelH);

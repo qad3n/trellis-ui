@@ -20,7 +20,7 @@ namespace Trellis
 		}
 
 		internal int selected => m_selected;
-		internal static SubTabHost forBlocks<TBlock>(string animKey, (string label, TBlock[] blocks)[] pages) where TBlock : unmanaged, Enum => new SubTabHost(animKey, RowTable.column(pages, page => page.label), (int index, float w, float viewH) => MenuHost.drawBlocks(w, 0f, pages[index].blocks));
+		internal static SubTabHost forPages(string animKey, (string label, Page page)[] pages) => new SubTabHost(animKey, RowTable.column(pages, page => page.label), (int index, float w, float viewH) => pages[index].page.draw(w, viewH));
 		internal void drawHeader(float x, float y, float w) => m_selected = Widgets.drawSubTabsFixed(x, y, w, m_names, m_selected, m_animKey);
 		internal float draw(float w, float viewH) => MenuAnimation.drawSubTabs(m_animKey, m_selected, w, viewH, m_guardedDraw);
 		private float drawGuarded(int index, float w, float viewH) => index >= 0 && index < m_names.Length ? m_drawPage(index, w, viewH) : 0f;

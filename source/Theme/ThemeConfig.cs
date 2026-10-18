@@ -1,9 +1,7 @@
-﻿using System.Reflection;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class ThemeConfig
 	{
 		private const float kDefaultDim = 0.35f;
@@ -13,67 +11,67 @@ namespace Trellis
 		private const string kDefaultTint = "00AAFF";
 		private const int kHashMix = 397;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x9B602204F7BA78FC)]
 		public static float SurfaceTint;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x01A036280B59EB03)]
 		public static float SurfaceContrast = ThemeConfig.kDefaultContrast;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xDED11F5A01A533BD)]
 		public static float Brightness = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xA9A89D494A5DD79D)]
 		public static float BorderStrength = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x77F6D498840840B0)]
 		public static float BorderWidth = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x788D59E89BAF02B1)]
 		public static float AccentIntensity = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x1C1301098448BD4A)]
 		public static float TextBrightness = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x6D66FB5C9E02FC9D)]
 		public static float CornerRadius;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x7096F40E751C95FB)]
 		public static bool TacticalHeaders;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x1321CAF1BC5415F2)]
 		public static SurfaceTintSource TintSource = SurfaceTintSource.Accent;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x43722D3A00C7BBF6)]
 		public static Color TintColor = ColorHex.parse(ThemeConfig.kDefaultTint);
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x03BFBB63B08E07AA)]
 		public static bool[] SlotOverride = new bool[ThemeSlots.kCount];
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x5A0E90A55BEBB085)]
 		public static Color[] SlotColor = new Color[ThemeSlots.kCount];
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x1988552810D27645)]
 		public static MenuWindowBgMode BackgroundMode = MenuWindowBgMode.Solid;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x503CC5947DBF4DC5)]
 		public static MenuWindowBgFit BackgroundFit = MenuWindowBgFit.Cover;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x3C6C9CC6A1EF1853)]
 		public static string BackgroundImage = string.Empty;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x2CBA77DBBB550F8F)]
 		public static Color BackgroundTint = ColorMath.kWhite;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x5F030A9485649918)]
 		public static float BackgroundDim = ThemeConfig.kDefaultDim;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x2EEAE7302D80B122)]
 		public static float MenuOpacity = 1f;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x0D48D7F8D8079791)]
 		public static float PanelOpacity = ThemeConfig.kDefaultPanelOpacity;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0xA5006B71264F2D48)]
 		public static float BlockOpacity = ThemeConfig.kDefaultBlockOpacity;
 
 		internal static class Limits

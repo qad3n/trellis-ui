@@ -2,7 +2,15 @@
 
 namespace Trellis
 {
-	// needs the Obfuscation opt out too and moving a field changes its key
+	// the key is the saved identity so the host can rename or move the field without a lookup by name
 	[AttributeUsage(AttributeTargets.Field)]
-	internal sealed class ConfigAttribute : Attribute {}
+	internal sealed class ConfigAttribute : Attribute
+	{
+		internal readonly ulong m_key;
+
+		internal ConfigAttribute(ulong key)
+		{
+			m_key = key;
+		}
+	}
 }

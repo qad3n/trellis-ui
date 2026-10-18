@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class ColorPicker
 	{
 		private const float kDragEpsilon = 0.0001f;
@@ -28,7 +26,7 @@ namespace Trellis
 
 		private static int m_cacheFrame = -1;
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x377A231807F4F303)]
 		private static string rainbowState = string.Empty;
 
 		private static Texture2D m_hueTexture;
@@ -70,8 +68,11 @@ namespace Trellis
 			internal const float kSpeedLabelW = 56f;
 			internal const float kSpeedValueW = 48f;
 			internal const float kSwatchSize = 22f;
+			// toggle rows draw their content one pixel down
+			internal const float kSwatchNudgeY = 1f;
 			internal const float kLabelW = 110f;
-			internal const float kRowH = 26f;
+			// same pitch as a toggle row so stacked swatches keep the gap under a toggle swatch
+			internal const float kRowH = 30f;
 			internal const float kHashW = 14f;
 			internal const float kSwatchGap = 8f;
 			internal const float kInlineMinX = 120f;
@@ -269,16 +270,17 @@ namespace Trellis
 
 			float offsetY = MenuHost.m_blockOffset.y;
 
-			float swatchX = w - Layout.kSwatchSize;
+			float swatchX = w - MenuHost.kSwatchW;
 
 			float labelW = FastMath.max(Layout.kLabelW, swatchX - Layout.kSwatchGap);
-			Widgets.fittedLabel(RectMath.create(offsetX, offsetY + y, labelW, Layout.kSwatchSize), Widgets.bold(label), Theme.label, TextAnchor.MiddleLeft);
+			float swatchY = y + Layout.kSwatchNudgeY;
+			UiText.fittedLabel(RectMath.create(offsetX, offsetY + swatchY, labelW, Layout.kSwatchSize), UiText.bold(label), Theme.label, TextAnchor.MiddleLeft);
 
-			Rect drawRect = RectMath.create(offsetX + swatchX, offsetY + y, Layout.kSwatchSize, Layout.kSwatchSize);
+			Rect drawRect = RectMath.create(offsetX + swatchX, offsetY + swatchY, Layout.kSwatchSize, Layout.kSwatchSize);
 			ColorPicker.drawSwatch(drawRect, ColorPicker.resolve(id, color));
 
 			if (Gui.enabled && RectMath.contains(drawRect, MenuHost.scrollMouse) && MenuHost.mouseDown0)
-				ColorPicker.openPopup(id, RectMath.create(swatchX, y, Layout.kSwatchSize, Layout.kSwatchSize));
+				ColorPicker.openPopup(id, RectMath.create(swatchX, swatchY, Layout.kSwatchSize, Layout.kSwatchSize));
 
 			y += Layout.kRowH;
 			Widgets.endRow(ref y, ref row);
@@ -304,7 +306,7 @@ namespace Trellis
 
 			float offsetY = MenuHost.m_blockOffset.y;
 
-			Rect drawRect = RectMath.create(offsetX + x, offsetY + y + 1f, Layout.kSwatchSize, Layout.kSwatchSize);
+			Rect drawRect = RectMath.create(offsetX + x, offsetY + y + Layout.kSwatchNudgeY, Layout.kSwatchSize, Layout.kSwatchSize);
 			ColorPicker.drawSwatch(drawRect, ColorPicker.resolve(id, color));
 
 			float defaultHit = FastMath.min(Layout.kSwatchSize + Layout.kHitExtra, w - x);
@@ -315,7 +317,7 @@ namespace Trellis
 			if (!(Gui.enabled && RectMath.contains(hitRect, MenuHost.scrollMouse) && MenuHost.mouseDown0))
 				return;
 
-			ColorPicker.openPopup(id, RectMath.create(x, y + 1f, Layout.kSwatchSize, Layout.kSwatchSize));
+			ColorPicker.openPopup(id, RectMath.create(x, y + Layout.kSwatchNudgeY, Layout.kSwatchSize, Layout.kSwatchSize));
 		}
 
 		internal static void readPopup(Rect viewRect, Vector2 scrollOffset)
@@ -798,7 +800,7 @@ namespace Trellis
 		private static void drawHex(Rect popupRect, PickerState state, Color current)
 		{
 			Rect hexRect = ColorPicker.hexRect(popupRect);
-			Widgets.fittedLabel(RectMath.create(RectMath.x(hexRect), RectMath.y(hexRect), Layout.kHashW, Layout.kHexRowH), "#", Theme.label, TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(RectMath.x(hexRect), RectMath.y(hexRect), Layout.kHashW, Layout.kHexRowH), "#", Theme.label, TextAnchor.MiddleLeft);
 
 			string controlName = state.m_hexControl;
 
@@ -870,7 +872,7 @@ namespace Trellis
 			float labelW = RectMath.xMax(popupRect) - Layout.kPopupPad - labelX;
 
 			float labelY = RectMath.y(checkRect) + (RectMath.h(checkRect) - Layout.kRainbowRowH) * 0.5f;
-			Widgets.fittedLabel(RectMath.create(labelX, labelY, labelW, Layout.kRainbowRowH), "<b>Rainbow</b>", Theme.label, TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(labelX, labelY, labelW, Layout.kRainbowRowH), "<b>Rainbow</b>", Theme.label, TextAnchor.MiddleLeft);
 		}
 
 		private static void drawSpeed(Rect popupRect, PickerState state, string renderId)
@@ -888,7 +890,7 @@ namespace Trellis
 			bool justOpened = Widgets.openSliderEdit(sliderId, labelRect, MenuHost.mousePosition, MenuHost.mouseDown0, speed);
 			if (Widgets.sliderEditing(sliderId))
 			{
-				Widgets.fittedLabel(labelRect, ColorPicker.kSpeedLabel, Theme.label, TextAnchor.MiddleLeft);
+				UiText.fittedLabel(labelRect, ColorPicker.kSpeedLabel, Theme.label, TextAnchor.MiddleLeft);
 
 				Rect editRect = RectMath.create(RectMath.x(track), RectMath.y(row), RectMath.xMax(row) - RectMath.x(track), Layout.kSpeedRowH);
 
@@ -900,8 +902,8 @@ namespace Trellis
 
 			float ratio = EasingMath.normalize(speed, Rainbow.kMinSpeed, Rainbow.kMaxSpeed);
 
-			Widgets.fittedLabel(labelRect, ColorPicker.kSpeedLabel, Theme.label, TextAnchor.MiddleLeft);
-			Widgets.fittedLabel(RectMath.create(RectMath.xMax(row) - Layout.kSpeedValueW, RectMath.y(row), Layout.kSpeedValueW, Layout.kSpeedRowH), Widgets.numberText(speed, "F2", "x"), Theme.valueLabel, TextAnchor.MiddleRight);
+			UiText.fittedLabel(labelRect, ColorPicker.kSpeedLabel, Theme.label, TextAnchor.MiddleLeft);
+			UiText.fittedLabel(RectMath.create(RectMath.xMax(row) - Layout.kSpeedValueW, RectMath.y(row), Layout.kSpeedValueW, Layout.kSpeedRowH), Widgets.numberText(speed, "F2", "x"), Theme.valueLabel, TextAnchor.MiddleRight);
 
 			bool hovered = !ColorPicker.m_dragSpeed && RectMath.contains(track, MenuHost.mousePosition);
 			Widgets.drawSliderVisual(track, ratio, hovered, ColorPicker.m_dragSpeed, sliderId.GetHashCode());

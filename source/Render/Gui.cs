@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class Gui
 	{
 		private const float kCoverageEpsilon = 0.004f;
@@ -38,7 +36,7 @@ namespace Trellis
 		private static float m_clipY;
 		private static readonly List<Vector2> kClipOrigins = new List<Vector2>();
 
-		[Config, Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
+		[Config(0x439DEEC54A46B271)]
 		internal static float DpiScale = 1f;
 
 		private static class ContentCache
@@ -113,7 +111,7 @@ namespace Trellis
 		}
 
 		internal static float devicePixel => Gui.m_matrixScale > 0f ? 1f / Gui.m_matrixScale : 1f;
-		// whiteTexture is a property invoke every read
+		// the unity property is an invoke on every read
 		internal static Texture2D whiteTexture => Gui.m_whiteTexture ??= Texture2D.whiteTexture;
 		internal static float spaceWidth => Gui.m_matrixScale > 0f ? Gui.m_screenWidth / Gui.m_matrixScale : Gui.m_screenWidth;
 		internal static float spaceHeight => Gui.m_matrixScale > 0f ? Gui.m_screenHeight / Gui.m_matrixScale : Gui.m_screenHeight;
@@ -489,8 +487,35 @@ namespace Trellis
 			Color saved = Gui.color;
 
 			Gui.color = shadowColor;
-			Gui.label(Gui.shadowRect(rect, depth), content, style);
+			Gui.shadowLabel(rect, content, style, depth);
 			Gui.color = saved;
+		}
+
+		internal static void shadowLabel(Rect rect, string text, GUIStyle style, int depth = 1) => Gui.shadowLabel(rect, Gui.content(text), style, depth);
+
+		// the shadow font carries a softened sdf material so the blur costs no extra draw
+		internal static void shadowLabel(Rect rect, GUIContent content, GUIStyle style, int depth = 1)
+		{
+			if (!Gui.m_repainting)
+				return;
+
+			Rect shadow = Gui.shadowRect(rect, depth);
+			Font font = style.font;
+			if (!Live.isUnityAlive(font))
+			{
+				GUI.Label(shadow, content, style);
+				return;
+			}
+
+			style.font = ShadowFont.of(font);
+			try
+			{
+				GUI.Label(shadow, content, style);
+			}
+			finally
+			{
+				style.font = font;
+			}
 		}
 
 		internal static void drawShadowed(Rect rect, string text, GUIStyle style, Color shadowColor)

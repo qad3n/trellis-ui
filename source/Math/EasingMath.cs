@@ -14,7 +14,7 @@
 			return t * t * (3f - 2f * t);
 		}
 
-		// 1 at the edge, long tail, no slope where it ends
+		// 1 at the edge with a long tail and no slope where it ends
 		internal static float cubicFalloff(float t)
 		{
 			if (t <= 0f)

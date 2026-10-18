@@ -13,12 +13,15 @@ namespace Trellis
 		private const char kNewLine = '\n';
 		private const string kOneLine = "a";
 		private const string kTwoLines = "a\na";
+		private const string kSpacedPair = "a a";
+		private const string kPair = "aa";
 
 		private string m_layoutText;
 		private float m_areaWidth = -1f;
 		private float m_wrapWidth;
 		private GUIStyle m_measuredStyle;
 		private float m_emptyWidth;
+		private float m_spaceWidth;
 		private int m_lineCount;
 		private Line[] m_lines = new Line[MenuTextLayout.kLineCapacity];
 		private float[] m_charX = new float[MenuTextLayout.kCharCapacity];
@@ -109,6 +112,26 @@ namespace Trellis
 			return end;
 		}
 
+		// calcsize drops trailing spaces so they are added back by count
+		internal static float measure(string text, int start, int count, GUIStyle style, float spaceWidth)
+		{
+			int trimmed = count;
+			while (trimmed > 0 && text[start + trimmed - 1] == MenuTextLayout.kSpace)
+				trimmed--;
+
+			Theme.kScratchContent.text = text.Substring(start, trimmed);
+			return style.CalcSize(Theme.kScratchContent).x + (count - trimmed) * spaceWidth;
+		}
+
+		internal static float spaceWidth(GUIStyle style)
+		{
+			Theme.kScratchContent.text = MenuTextLayout.kSpacedPair;
+			float spaced = style.CalcSize(Theme.kScratchContent).x;
+
+			Theme.kScratchContent.text = MenuTextLayout.kPair;
+			return spaced - style.CalcSize(Theme.kScratchContent).x;
+		}
+
 		internal static int prefixLength(string first, string second)
 		{
 			int limit = FastMath.min(first.Length, second.Length);
@@ -189,11 +212,7 @@ namespace Trellis
 			return next;
 		}
 
-		private float measureWidth(string text, GUIStyle style, int start, int count)
-		{
-			Theme.kScratchContent.text = text.Substring(start, count);
-			return style.CalcSize(Theme.kScratchContent).x - m_emptyWidth;
-		}
+		private float measureWidth(string text, GUIStyle style, int start, int count) => MenuTextLayout.measure(text, start, count, style, m_spaceWidth) - m_emptyWidth;
 
 		private void measureStyle(GUIStyle style)
 		{
@@ -205,6 +224,7 @@ namespace Trellis
 
 			Theme.kScratchContent.text = string.Empty;
 			m_emptyWidth = style.CalcSize(Theme.kScratchContent).x;
+			m_spaceWidth = MenuTextLayout.spaceWidth(style);
 
 			Theme.kScratchContent.text = MenuTextLayout.kOneLine;
 

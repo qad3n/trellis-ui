@@ -18,26 +18,20 @@ namespace Trellis
 			Gui.color = prev;
 		}
 
+		internal static void drawBox(Rect rect, Color fill, Color border) => Theme.drawRoundedBox(rect, fill, border, Theme.cornerR, Theme.borderWidth);
+
 		internal static void drawCardBg(Rect cardRect, Color accentColor)
 		{
 			Theme.drawBlockBg(cardRect);
 			Theme.drawTopAccent(cardRect, accentColor);
 		}
 
-		internal static Rect drawPopupBand(Rect popupRect, float headerH, float accentH)
-		{
-			Theme.drawPopupBand(popupRect, headerH, accentH);
-			return RectMath.create(RectMath.x(popupRect), RectMath.y(popupRect), RectMath.w(popupRect), headerH);
-		}
-
-		internal static float badgeY(Rect headerRect) => RectMath.y(headerRect) + (RectMath.h(headerRect) - Widgets.kBadgeHeight) * 0.5f;
-
 		internal static void drawPopupTitle(Rect headerRect, float pad, float badgesLeft, string title, GUIStyle titleStyle)
 		{
 			float titleX = RectMath.x(headerRect) + pad;
 
-			float titleW = FastMath.max(0f, badgesLeft - Widgets.kBadgeGap - titleX);
-			Widgets.alignedLabel(RectMath.create(titleX, RectMath.y(headerRect), titleW, RectMath.h(headerRect)), title, titleStyle, TextAnchor.MiddleLeft);
+			float titleW = FastMath.max(0f, badgesLeft - Badges.kGap - titleX);
+			UiText.alignedLabel(RectMath.create(titleX, RectMath.y(headerRect), titleW, RectMath.h(headerRect)), title, titleStyle, TextAnchor.MiddleLeft);
 		}
 	}
 }

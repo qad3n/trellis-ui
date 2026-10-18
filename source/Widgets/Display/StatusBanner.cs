@@ -5,7 +5,7 @@ namespace Trellis
 	internal static partial class Widgets
 	{
 		// hashing a Color is an engine invoke
-		private static readonly EvictingCache<(string title, string hex), string> kBannerTitles = new EvictingCache<(string title, string hex), string>(RowPrimitiveLayout.kMarkupMax);
+		private static readonly EvictingCache<(string title, string hex), string> kBannerTitles = new EvictingCache<(string title, string hex), string>(Widgets.kMarkupCacheMax);
 
 		private static class BannerLayout
 		{
@@ -23,17 +23,17 @@ namespace Trellis
 			float fadeIn = MenuAnimation.fadeAlpha(unchecked(title.GetHashCode() * Widgets.kKeyMix) ^ BannerLayout.kFadeSalt);
 			Gui.color = ColorMath.fade(prevColor, fadeIn);
 
-			GUIStyle titleStyle = Widgets.wrapStyle(Theme.label);
+			GUIStyle titleStyle = UiText.wrapStyle(Theme.label);
 
-			GUIStyle detailStyle = Widgets.wrapStyle(Theme.valueLabel);
+			GUIStyle detailStyle = UiText.wrapStyle(Theme.valueLabel);
 
 			float textW = FastMath.max(0f, width - BannerLayout.kTextInset - BannerLayout.kPadX);
 
 			string titleText = Widgets.bannerTitle(title, accent);
 
-			float titleH = Widgets.measuredHeight(titleStyle, titleText, textW);
+			float titleH = UiText.measuredHeight(titleStyle, titleText, textW);
 
-			float detailH = string.IsNullOrEmpty(detail) ? 0f : Widgets.measuredHeight(detailStyle, detail, textW);
+			float detailH = string.IsNullOrEmpty(detail) ? 0f : UiText.measuredHeight(detailStyle, detail, textW);
 
 			float gap = detailH > 0f ? BannerLayout.kTitleGap : 0f;
 			height = BannerLayout.kPadY * 2f + titleH + gap + detailH;
@@ -54,7 +54,7 @@ namespace Trellis
 			if (Widgets.kBannerTitles.tryGetValue(key, out string cached))
 				return cached;
 
-			string text = RichText.wrapColor(Widgets.bold(title), accent);
+			string text = RichText.wrapColor(UiText.bold(title), accent);
 			Widgets.kBannerTitles.set(key, text);
 			return text;
 		}

@@ -33,9 +33,6 @@ namespace Trellis
 		private static readonly Regex kControlChars = new Regex(@"[\x00-\x08\x0B\x0E-\x1F\x7F]", RegexOptions.Compiled);
 		private static readonly Regex kSpaceControl = new Regex(@"[\t\n\r\f\v]", RegexOptions.Compiled);
 		private static readonly Regex kInlineControl = new Regex(@"[\t\f\v]", RegexOptions.Compiled);
-		// a vanilla sticker is a sprite wrapped in a size tag
-		// imgui parses only these tags and prints any other markup as text
-		private static readonly Regex kImguiTag = new Regex(@"</?[bi]>|</?(?:size|color|material)(?:=[^>]*)?>|<quad[^>]*>", RegexOptions.Compiled);
 		private static readonly Regex kUrlRegex = new Regex(@"\b(?:https?://|www\.)[^\s<>""'\[\]]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex kTrailingPunct = new Regex(@"[.,)\]!?;:]+$", RegexOptions.Compiled);
 		private static readonly MarkupRules kNameRules = new MarkupRules(true, true, false);
@@ -98,10 +95,11 @@ namespace Trellis
 		}
 
 		// maps a string index to the same spot in the text imgui lays out once its tags are parsed away
+		// imgui eats every tag shaped token including ones it cannot draw like link so all of them count
 		internal static int visibleIndex(string text, int rawIndex)
 		{
 			int skipped = 0;
-			foreach (Match tag in RichText.kImguiTag.Matches(text))
+			foreach (Match tag in RichText.kTagRegex.Matches(text))
 			{
 				if (tag.Index >= rawIndex)
 					break;
@@ -300,7 +298,7 @@ namespace Trellis
 			return RichText.stripTags(RichText.fromGameHex(text));
 		}
 
-		// player name caps are the host's, uncapped until it sets them
+		// player names stay uncapped until the host sets its caps
 		internal static void nameLimits(int maxMarkup, int maxVisible)
 		{
 			RichText.m_nameMarkup = maxMarkup;

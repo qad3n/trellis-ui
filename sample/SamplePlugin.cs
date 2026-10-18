@@ -14,7 +14,14 @@ namespace TrellisSample
 		public override void Load()
 		{
 			SamplePlugin.m_log = Log;
-			UiLog.bind(Log.LogDebug, Log.LogInfo, Log.LogWarning, Log.LogDebug, SamplePlugin.logException, () => false);
+			Host.bind(new Host.Bindings
+			{
+				m_debug = Log.LogDebug,
+				m_info = Log.LogInfo,
+				m_warn = Log.LogWarning,
+				m_trace = Log.LogDebug,
+				m_exception = SamplePlugin.logException
+			});
 			SampleMenu.install();
 
 			ClassInjector.RegisterTypeInIl2Cpp<SampleDriver>();

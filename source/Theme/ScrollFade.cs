@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Trellis
 {
-	// an image backdrop changes colour under the band so a flat fade never meets it, bake what the band covers
+	// an image backdrop changes colour under the band so the fade bakes what it covers
 	internal static class ScrollFade
 	{
 		private static readonly Band kTop = new Band();

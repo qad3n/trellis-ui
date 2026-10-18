@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Trellis
 {
-	[Obfuscation(Exclude = true, ApplyToMembers = false, Feature = "renaming")]
 	internal static class MenuAnimation
 	{
 		private const float kPressAlpha = 0.25f;
@@ -163,7 +161,7 @@ namespace Trellis
 			internal MotionValue m_payout;
 			internal bool m_targetOpen;
 			internal float m_lastTouched;
-			// the size of the sheet once drawn, it sets how long its light takes
+			// the drawn sheet size sets how long its light takes
 			internal float m_extent;
 			internal OpenCloseKind m_kind;
 		}
@@ -333,7 +331,7 @@ namespace Trellis
 			{
 				if (pressed)
 					style.contentOffset = VectorMath.add(savedOffset, VectorMath.v2(0f, 1f));
-				Widgets.fittedLabel(rect, text, style, style.alignment);
+				UiText.fittedLabel(rect, text, style, style.alignment);
 			}
 			finally
 			{
@@ -973,7 +971,7 @@ namespace Trellis
 			return ref entry;
 		}
 
-		// popups are frames and light over their own size, sections and fade ins carry the anchor light
+		// popups light over their own size while sections and fade ins carry the anchor light
 		private static MotionProfile sheetLight(ref OpenCloseEntry entry)
 		{
 			bool animate = MenuAnimation.kindEnabled(entry.m_kind);
@@ -1199,11 +1197,11 @@ namespace Trellis
 			if (FastMath.abs(jumpX) < MenuAnimation.restPx && FastMath.abs(jumpY) < MenuAnimation.restPx)
 				return;
 
-			MotionProfile body = MotionProfile.body(extentPx, 1f, AnimationConfig.shuffleEnabled);
+			MotionProfile glide = MotionProfile.glide(extentPx, AnimationConfig.shuffleEnabled);
 			entry.m_offsetX.offsetBy(jumpX);
 			entry.m_offsetY.offsetBy(jumpY);
-			entry.m_offsetX.reel(0f, body);
-			entry.m_offsetY.reel(0f, body);
+			entry.m_offsetX.reel(0f, glide);
+			entry.m_offsetY.reel(0f, glide);
 
 			if (entry.m_markHop && FastMath.abs(jumpX) >= MenuAnimation.restPx)
 				entry.m_hopSpan = VectorMath.distance2D(entry.m_offsetX.sample(), entry.m_offsetY.sample());

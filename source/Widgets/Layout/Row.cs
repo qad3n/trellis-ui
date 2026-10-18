@@ -23,6 +23,8 @@
 			internal const string kDivider = "r.div";
 			internal const string kChips = "r.chip";
 			internal const string kList = "r.list";
+			internal const string kCustom = "r.ui";
+			internal const string kGroup = "r.grp";
 		}
 
 		internal static MenuRowFlow.RowScope beginRow(ref float y, string prefix, string label) => MenuRowFlow.beginRow(ref y, Widgets.rowKey(prefix, label));

@@ -17,7 +17,7 @@ namespace Trellis
 			return PixelGrid.roundHalfUp(value * pixelsPerUnit) / pixelsPerUnit;
 		}
 
-		// phase is where the local origin sits on the device grid, in units
+		// the phase is where the local origin sits on the device grid in units
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static float snap(float value, float pixelsPerUnit, float phase) => PixelGrid.snap(value + phase, pixelsPerUnit) - phase;
 

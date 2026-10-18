@@ -40,7 +40,7 @@ namespace Trellis
 			return new ImagePreview(span.ToArray(), width, height);
 		}
 
-		// uv in texture space, v up, bilinear with clamped edges like the bilinear sampler
+		// uv is in texture space with v up and clamps edges like the bilinear sampler
 		internal Color sample(float u, float v)
 		{
 			float x = FastMath.clamp(u * m_width - 0.5f, 0f, m_width - 1);
