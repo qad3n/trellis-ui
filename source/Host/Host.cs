@@ -25,6 +25,7 @@ namespace Trellis
 			internal Action<string, float, float, float> m_sliderUnsafe;
 			internal SafeDefault m_sliderDefault;
 			internal Func<bool> m_inputClaimed;
+			internal Func<KeyChord, string> m_keyConflict;
 			internal int m_nameMarkupLimit;
 			internal int m_nameVisibleLimit;
 			internal BadgeRow[] m_badges;
@@ -73,6 +74,7 @@ namespace Trellis
 				Notifications.levels(host.m_levels);
 
 			Host.m_notifyRef = host.m_notifyRef;
+			Widgets.m_keyConflict = host.m_keyConflict;
 
 			if (host.m_inputClaimed == null)
 				return;

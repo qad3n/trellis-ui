@@ -12,6 +12,10 @@ namespace Trellis
 		private const string kKeybindCapturing = "<press a key>";
 		internal const string kKeybindTooltip = "Bind a key, mouse button or combo like Ctrl + I. Right click to clear.";
 		private const float kKeybindInlineGap = 10f;
+		private const float kKeybindConflictAlpha = 0.22f;
+
+		// the host names every bind sharing a chord so both key caps warn wherever they are drawn
+		internal static Func<KeyChord, string> m_keyConflict;
 
 		// a chord label allocates every draw
 		private static readonly Dictionary<KeyChord, string> kChordNames = new Dictionary<KeyChord, string>();
@@ -138,6 +142,9 @@ namespace Trellis
 			}
 			Widgets.drawWash(buttonRect, id, capturing);
 
+			if (!capturing)
+				Widgets.drawConflict(buttonRect, value);
+
 			if (!disabled && MenuHost.mouseDown1 && RectMath.contains(buttonRect, MenuHost.scrollMouse))
 			{
 				value = default;
@@ -223,6 +230,18 @@ namespace Trellis
 				return;
 
 			Theme.drawRoundedTint(buttonRect, ColorMath.withAlpha(Theme.m_accent, KeybindCapture.kAlpha * captureT));
+		}
+
+		// drawn after the row tooltip so the conflict owns the hover
+		private static void drawConflict(Rect buttonRect, KeyChord value)
+		{
+			string conflict = Widgets.m_keyConflict?.Invoke(value);
+			if (conflict == null)
+				return;
+
+			if (Gui.repainting)
+				Theme.drawRoundedTint(buttonRect, ColorMath.withAlpha(Theme.Status.m_gold, Widgets.kKeybindConflictAlpha));
+			MenuHost.hoverTooltip(buttonRect, conflict);
 		}
 
 		private static string formatKeybind(KeyChord chord)
