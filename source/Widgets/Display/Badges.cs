@@ -15,7 +15,6 @@ namespace Trellis
 		private const float kBorderAlpha = 0.55f;
 		// a counting row reads "ADMIN +3" up to this many extras
 		private const int kMaxExtra = 13;
-		private const string kGroupSep = "·";
 
 		private static readonly StringBuilder kGroupText = new StringBuilder();
 		private static BadgeRow[] m_rows = Array.Empty<BadgeRow>();
@@ -102,23 +101,20 @@ namespace Trellis
 				segments.Add(Badges.markup(MenuHost.key(badges[i]), extra));
 		}
 
-		// a group merges into the bracket of its first badge and every part keeps its own colour
 		internal static void appendMarkup<TBadge>(List<string> segments, List<TBadge> badges, int extra, BadgeStyle style) where TBadge : unmanaged, Enum
 		{
-			if (style == BadgeStyle.Full)
+			switch (style)
 			{
-				Badges.appendMarkup(segments, badges, extra);
-				return;
-			}
-
-			bool codes = style == BadgeStyle.Codes;
-			for (int i = 0; i < badges.Count; i++)
-			{
-				int group = Badges.row(MenuHost.key(badges[i])).m_group;
-				if (Badges.groupSeen(badges, i, group))
-					continue;
-
-				segments.Add(Badges.groupMarkup(badges, i, group, extra, codes));
+				case BadgeStyle.Grouped:
+					Badges.appendGrouped(segments, badges, extra);
+					break;
+				case BadgeStyle.Codes:
+					if (badges.Count > 0)
+						segments.Add(Badges.codesMarkup(badges, extra));
+					break;
+				default:
+					Badges.appendMarkup(segments, badges, extra);
+					break;
 			}
 		}
 
@@ -140,12 +136,19 @@ namespace Trellis
 		private static bool known(int badge) => badge >= 0 && badge < Badges.m_rows.Length;
 		private static BadgeRow row(int badge) => Badges.known(badge) ? Badges.m_rows[badge] : default;
 
-		private static string prefix(int group, bool codes)
-		{
-			if (group < 0 || group >= Badges.m_groups.Length)
-				return string.Empty;
+		private static string prefix(int group) => group >= 0 && group < Badges.m_groups.Length ? Badges.m_groups[group].m_prefix : string.Empty;
 
-			return codes ? Badges.m_groups[group].m_code : Badges.m_groups[group].m_prefix;
+		// a group merges into the bracket of its first badge and every part keeps its own colour
+		private static void appendGrouped<TBadge>(List<string> segments, List<TBadge> badges, int extra) where TBadge : unmanaged, Enum
+		{
+			for (int i = 0; i < badges.Count; i++)
+			{
+				int group = Badges.row(MenuHost.key(badges[i])).m_group;
+				if (Badges.groupSeen(badges, i, group))
+					continue;
+
+				segments.Add(Badges.groupMarkup(badges, i, group, extra));
+			}
 		}
 
 		private static bool groupSeen<TBadge>(List<TBadge> badges, int index, int group) where TBadge : unmanaged, Enum
@@ -161,31 +164,38 @@ namespace Trellis
 			return false;
 		}
 
-		private static string groupMarkup<TBadge>(List<TBadge> badges, int start, int group, int extra, bool codes) where TBadge : unmanaged, Enum
+		private static string groupMarkup<TBadge>(List<TBadge> badges, int start, int group, int extra) where TBadge : unmanaged, Enum
 		{
 			StringBuilder text = Badges.kGroupText.Clear();
-			text.Append('[').Append(Badges.prefix(group, codes));
+			text.Append('[').Append(Badges.prefix(group));
 			for (int i = start; i < badges.Count; i++)
 			{
 				int badge = MenuHost.key(badges[i]);
 				if (i > start && (group == BadgeGroup.kNone || Badges.row(badge).m_group != group))
 					continue;
 
-				if (i > start)
-					text.Append(Badges.kGroupSep);
-
-				text.Append(Theme.tag(Badges.part(badge, extra, codes), Badges.color(badge)));
+				text.Append(Theme.tag(Badges.part(badge, Badges.row(badge).m_short, extra), Badges.color(badge)));
 			}
 			text.Append(']');
 			return $"<b>{Theme.tag(text.ToString(), Badges.color(MenuHost.key(badges[start])))}</b>";
 		}
 
-		private static string part(int badge, int extra, bool codes)
+		// every badge shares one neutral bracket and only the colour tells codes apart
+		private static string codesMarkup<TBadge>(List<TBadge> badges, int extra) where TBadge : unmanaged, Enum
 		{
-			BadgeRow row = Badges.row(badge);
+			StringBuilder text = Badges.kGroupText.Clear();
+			text.Append('[');
+			for (int i = 0; i < badges.Count; i++)
+			{
+				int badge = MenuHost.key(badges[i]);
+				text.Append(Theme.tag(Badges.part(badge, Badges.row(badge).m_code, extra), Badges.color(badge)));
+			}
+			text.Append(']');
+			return $"<b>{Theme.tag(text.ToString(), Theme.Text.m_secondary)}</b>";
+		}
 
-			string text = codes ? row.m_code : row.m_short;
-
+		private static string part(int badge, string text, int extra)
+		{
 			int column = Badges.extraColumn(badge, extra);
 			return column == 0 ? text : $"{text}+{column}";
 		}
