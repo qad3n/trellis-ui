@@ -22,9 +22,9 @@
 		private static float speed => AnimationConfig.Speed;
 		private static bool bodiesMove => AnimationConfig.Enabled && !AnimationConfig.ReducedMotion;
 
-		internal static MotionProfile body(float extentPx, float unitPx, bool animate) => MotionProfile.cable(extentPx, unitPx, false, animate && MotionProfile.bodiesMove);
+		internal static MotionProfile body(float extentPx, float unitPx, bool animate) => MotionProfile.cable(MotionMath.massOmega(MotionTokens.kAnchorOmega, MotionTokens.kAnchorLoad.m_extentPx, extentPx), unitPx, false, animate && MotionProfile.bodiesMove);
 
-		internal static MotionProfile payout(float extentPx, float spanPx, bool animate) => MotionProfile.cable(extentPx, spanPx, true, animate && MotionProfile.bodiesMove);
+		internal static MotionProfile payout(float extentPx, float spanPx, bool animate) => MotionProfile.cable(MotionProfile.landOmega(extentPx), spanPx, true, animate && MotionProfile.bodiesMove);
 
 		internal static MotionProfile hand(float unitPx, bool animate)
 		{
@@ -32,11 +32,8 @@
 			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kHand.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, false, !(animate && MotionProfile.bodiesMove));
 		}
 
-		internal static MotionProfile glide(float extentPx, bool animate)
-		{
-			float seconds = MotionMath.frameSeconds(MotionTokens.kAnchorLoad.m_settleSeconds, MotionTokens.kAnchorLoad.m_extentPx, extentPx) / MotionProfile.speed;
-			return new MotionProfile(MotionMath.criticalOmega(seconds), MotionTokens.kRail.m_damping, MotionProfile.ventAcceleration(1f), MotionTokens.kSolver.m_restPx, false, !(animate && MotionProfile.bodiesMove));
-		}
+		// a critical tail crawls below a pixel per frame and reads as stepping so the hop lands on the end stop
+		internal static MotionProfile glide(float extentPx, bool animate) => MotionProfile.cable(MotionProfile.landOmega(extentPx), 1f, true, animate && MotionProfile.bodiesMove);
 
 		internal static MotionProfile light(bool animate) => MotionProfile.lightOver(MotionTokens.kLightLoad.m_extentPx, animate);
 
@@ -52,12 +49,10 @@
 
 		internal static float releaseSeconds(float extentPx) => MotionMath.ventSeconds(FastMath.max(extentPx, MotionTokens.kLightLoad.m_extentPx), MotionTokens.kLightVentAcceleration * MotionProfile.speed * MotionProfile.speed);
 
-		private static MotionProfile cable(float extentPx, float unitPx, bool endStop, bool animate)
+		private static MotionProfile cable(float omega, float unitPx, bool endStop, bool animate)
 		{
 			float unit = FastMath.max(unitPx, 1f);
-
-			float omega = MotionMath.massOmega(MotionTokens.kAnchorOmega, MotionTokens.kAnchorLoad.m_extentPx, extentPx) * MotionProfile.speed;
-			return new MotionProfile(omega, MotionTokens.kCable.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, endStop, !animate);
+			return new MotionProfile(omega * MotionProfile.speed, MotionTokens.kCable.m_damping, MotionProfile.ventAcceleration(unit), MotionTokens.kSolver.m_restPx / unit, endStop, !animate);
 		}
 
 		private static MotionProfile lightOver(float spanPx, bool animate)
@@ -65,6 +60,9 @@
 			bool instant = !(animate && AnimationConfig.Enabled);
 			return new MotionProfile(MotionTokens.kAnchorOmega * MotionProfile.speed, MotionTokens.kLight.m_damping, MotionTokens.kLightVentAcceleration * MotionProfile.speed * MotionProfile.speed / spanPx, MotionTokens.kSolver.m_restLight, false, instant);
 		}
+
+		// reveals span the whole content width so the square root mass law left them hanging
+		private static float landOmega(float extentPx) => MotionMath.settleOmega(MotionMath.frameSeconds(MotionTokens.kAnchorLoad.m_settleSeconds, MotionTokens.kAnchorLoad.m_extentPx, extentPx), MotionTokens.kCable.m_damping);
 
 		private static float ventAcceleration(float unitPx) => MotionTokens.kVentAcceleration * MotionProfile.speed * MotionProfile.speed / unitPx;
 	}

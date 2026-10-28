@@ -6,8 +6,6 @@
 		internal static readonly LineToken kCable = new LineToken(0.02f);
 		internal static readonly LineToken kHand = new LineToken(0f);
 		internal static readonly LineToken kLight = new LineToken(0f);
-		// a block changing column glides in without overshoot or it bounces and creeps back
-		internal static readonly LineToken kRail = new LineToken(0f);
 
 		internal static readonly LoadToken kAnchorLoad = new LoadToken(16f, 0.1f, 0.05f);
 
