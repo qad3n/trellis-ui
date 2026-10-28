@@ -25,11 +25,9 @@ namespace Trellis
 			internal const float kCaretInset = 1f;
 			internal const float kCaretBox = 10f;
 			internal const float kCaretGap = 6f;
-			internal const float kRuleGap = 8f;
-			internal const float kRuleH = 1f;
+			internal const float kTrailingGap = 8f;
 			internal const float kBottomGap = 6f;
-			internal const float kBodyIndent = 14f;
-			internal const float kRailW = 1f;
+			internal const float kInsetPadX = 8f;
 			internal const float kHoverEpsilon = 0.001f;
 		}
 
@@ -85,7 +83,10 @@ namespace Trellis
 
 			MenuAnimation.SectionScope body = MenuAnimation.beginSection(ref y, bodyKey, expanded && !locked);
 			if (body.m_render)
-				Widgets.indentBody(ref w, DisclosureLayout.kBodyIndent);
+			{
+				Widgets.beginInset(y, ref w, body);
+				y += Widgets.kFieldGap;
+			}
 			return body;
 		}
 
@@ -93,12 +94,12 @@ namespace Trellis
 		internal static void endDisclosure(ref float y, ref float w, MenuAnimation.SectionScope body)
 		{
 			if (body.m_render)
-				Widgets.indentBody(ref w, -DisclosureLayout.kBodyIndent);
+			{
+				Widgets.endInset(ref w);
+				y += Widgets.kFieldGap;
+			}
 
 			MenuAnimation.endSection(ref y, body);
-
-			if (body.m_render)
-				Widgets.drawDisclosureRail(body.m_startY, y, body.m_layoutProgress);
 		}
 
 		// a widgetId outside a block pass advances every pass and never eases
@@ -112,17 +113,22 @@ namespace Trellis
 
 			float hoverT = MenuAnimation.disclosureHover(animId, hovered);
 			if (Gui.repainting)
-				Widgets.drawDisclosureRow(row, text, trailing, open, FastMath.max(open, hoverT));
+				Widgets.drawDisclosureRow(row, text, trailing, open, hoverT);
 			return hovered && MenuHost.mouseDown0;
 		}
 
-		// the label brightens while open or hovered so a folded header reads as a quiet divider
-		private static void drawDisclosureRow(Rect row, string text, string trailing, float open, float lit)
+		// the label brightens while open or hovered so a folded header stays quiet
+		private static void drawDisclosureRow(Rect row, string text, string trailing, float open, float hoverT)
 		{
+			if (hoverT > DisclosureLayout.kHoverEpsilon)
+				Widgets.drawFaded(row, Theme.accentFaint, hoverT);
+
+			float lit = FastMath.max(open, hoverT);
+
 			Rect caretRect = RectMath.create(RectMath.x(row) + DisclosureLayout.kCaretInset, RectMath.y(row) + LayoutMath.centerOffset(RectMath.h(row), DisclosureLayout.kCaretBox), DisclosureLayout.kCaretBox, DisclosureLayout.kCaretBox);
 			Widgets.drawCaret(caretRect, open, lit);
 
-			float trailingW = string.IsNullOrEmpty(trailing) ? 0f : FastMath.min(UiText.measuredWidth(Theme.valueLabel, trailing), RectMath.w(row) * SectionHeaderLayout.kTrailingShare) + DisclosureLayout.kRuleGap;
+			float trailingW = string.IsNullOrEmpty(trailing) ? 0f : FastMath.min(UiText.measuredWidth(Theme.valueLabel, trailing), RectMath.w(row) * SectionHeaderLayout.kTrailingShare) + DisclosureLayout.kTrailingGap;
 
 			float labelX = RectMath.xMax(caretRect) + DisclosureLayout.kCaretGap;
 
@@ -141,30 +147,25 @@ namespace Trellis
 				Gui.color = prev;
 			}
 
-			float ruleX = RectMath.xMax(labelRect) + DisclosureLayout.kRuleGap;
-
-			float ruleW = RectMath.xMax(row) - trailingW - ruleX;
-			if (ruleW > 0f)
-				Gui.drawStroke(RectMath.create(ruleX, RectMath.y(row) + (RectMath.h(row) - DisclosureLayout.kRuleH) * 0.5f, ruleW, DisclosureLayout.kRuleH), Theme.divider);
-
 			if (trailingW > 0f)
-				UiText.ellipsizedLabel(RectMath.create(RectMath.xMax(row) - trailingW + DisclosureLayout.kRuleGap, RectMath.y(row), trailingW - DisclosureLayout.kRuleGap, RectMath.h(row)), trailing, Theme.valueLabel, TextAnchor.MiddleRight);
+				UiText.ellipsizedLabel(RectMath.create(RectMath.xMax(row) - trailingW + DisclosureLayout.kTrailingGap, RectMath.y(row), trailingW - DisclosureLayout.kTrailingGap, RectMath.h(row)), trailing, Theme.valueLabel, TextAnchor.MiddleRight);
 		}
 
-		// the rail hangs under the caret and spans the body down to its last row
-		private static void drawDisclosureRail(float top, float bottom, float progress)
+		// the trailing field gap sits inside the section so it eases with the body but outside the inset
+		private static void beginInset(float y, ref float w, in MenuAnimation.SectionScope body)
 		{
-			float railH = bottom - top - Widgets.kFieldGap;
-			if (!(railH > 0f))
-				return;
+			float insetH = MenuAnimation.fullHeight(body) - Widgets.kFieldGap;
+			if (insetH > 0f)
+				Theme.drawInsetBg(RectMath.create(MenuHost.m_blockOffset.x, MenuHost.m_blockOffset.y + y, w, insetH));
 
-			Color prev = Gui.color;
-			Gui.color = ColorMath.fade(prev, progress);
+			Widgets.indentBody(ref w, DisclosureLayout.kInsetPadX);
+			w -= DisclosureLayout.kInsetPadX;
+		}
 
-			float railX = DisclosureLayout.kCaretInset + (DisclosureLayout.kCaretBox - DisclosureLayout.kRailW) * 0.5f;
-			Gui.drawStroke(RectMath.create(MenuHost.m_blockOffset.x + railX, MenuHost.m_blockOffset.y + top, DisclosureLayout.kRailW, railH), Theme.divider);
-
-			Gui.color = prev;
+		private static void endInset(ref float w)
+		{
+			w += DisclosureLayout.kInsetPadX;
+			Widgets.indentBody(ref w, -DisclosureLayout.kInsetPadX);
 		}
 
 		private static void indentBody(ref float w, float indent)

@@ -222,7 +222,7 @@ namespace Trellis
 		internal static string bold(string text) => UiText.cachedMarkup(UiText.kBoldMarkups, text, "<b>", "</b>", false);
 		internal static string caution(string text) => UiText.toned(text, ThemeSlot.Warning);
 		internal static string hazard(string text) => UiText.toned(text, ThemeSlot.Danger);
-		internal static string subgroup(string text) => UiText.cachedMarkup(UiText.kSubgroupMarkups, text, "<b>", "</b>", true);
+		internal static string subgroup(string text) => UiText.cachedMarkup(UiText.kSubgroupMarkups, text, string.Empty, string.Empty, true);
 
 		internal static string tinted(string text, Color color)
 		{

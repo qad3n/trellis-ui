@@ -710,6 +710,13 @@ namespace Trellis
 			return scope;
 		}
 
+		// the body has not drawn yet so this is the last pass height
+		internal static float fullHeight(in SectionScope scope)
+		{
+			MenuAnimation.kFullHeights.TryGetValue(scope.m_animId.GetHashCode(), out float fullHeight);
+			return fullHeight;
+		}
+
 		internal static void endSection(ref float y, SectionScope scope)
 		{
 			if (!scope.m_render)

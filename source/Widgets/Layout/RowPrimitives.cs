@@ -17,15 +17,10 @@ namespace Trellis
 		{
 			internal const float kRowHeight = 22f;
 			internal const float kRowAdvance = 24f;
-			// verdana line box is 1.215 em so 15px needs 19
-			internal const float kSubHeaderHeight = 19f;
-			internal const float kSubHeaderAdvance = 24f;
-			internal const float kSubHeaderTopGap = 10f;
-			internal const float kSubHeaderTickW = 3f;
-			internal const float kSubHeaderTickH = 12f;
-			internal const float kSubHeaderTickGap = 7f;
-			internal const float kSubHeaderRuleGap = 10f;
-			internal const float kSubHeaderRuleH = 1f;
+			// verdana line box is 1.215 em so 14px needs 18
+			internal const float kSubHeaderHeight = 18f;
+			internal const float kSubHeaderAdvance = 22f;
+			internal const float kSubHeaderTopGap = 14f;
 			internal const float kLabelRatio = 0.44f;
 			internal const float kValueGap = 8f;
 			internal const float kStackedAdvance = 20f;
@@ -166,21 +161,7 @@ namespace Trellis
 			if (!Gui.repainting)
 				return;
 
-			float tickY = RectMath.y(rect) + LayoutMath.centerOffset(RectMath.h(rect), InfoRowLayout.kSubHeaderTickH);
-			Gui.drawStroke(RectMath.create(RectMath.x(rect), tickY, InfoRowLayout.kSubHeaderTickW, InfoRowLayout.kSubHeaderTickH), Theme.accentBar);
-
-			string label = UiText.subgroup(text);
-
-			float labelX = RectMath.x(rect) + InfoRowLayout.kSubHeaderTickW + InfoRowLayout.kSubHeaderTickGap;
-
-			float labelW = FastMath.max(0f, FastMath.min(UiText.measuredWidth(Theme.label, label), RectMath.xMax(rect) - labelX));
-			UiText.fittedLabel(RectMath.create(labelX, RectMath.y(rect), labelW, RectMath.h(rect)), label, Theme.label, TextAnchor.MiddleLeft);
-
-			float ruleX = labelX + labelW + InfoRowLayout.kSubHeaderRuleGap;
-
-			float ruleW = RectMath.xMax(rect) - ruleX;
-			if (ruleW > 0f)
-				Gui.drawStroke(RectMath.create(ruleX, RectMath.y(rect) + (RectMath.h(rect) - InfoRowLayout.kSubHeaderRuleH) * 0.5f, ruleW, InfoRowLayout.kSubHeaderRuleH), Theme.divider);
+			UiText.fittedLabel(rect, UiText.subgroup(text), Theme.subHeader, TextAnchor.MiddleLeft);
 		}
 
 		private static bool fitsInline(float w, string value)

@@ -291,6 +291,7 @@ namespace Trellis
 		internal static Texture2D sliderTrack { get; private set; }
 		internal static Texture2D thumbHover { get; private set; }
 		internal static GUIStyle sectionHeader { get; private set; }
+		internal static GUIStyle subHeader { get; private set; }
 		internal static GUIStyle tacticalHeader { get; private set; }
 		internal static GUIStyle tacticalHover { get; private set; }
 		internal static GUIStyle valueLabel { get; private set; }
@@ -443,6 +444,12 @@ namespace Trellis
 		internal static void drawBlockBg(Rect rect) => Theme.drawRoundedBox(rect, Theme.blockFill, Theme.m_blockBorder, Theme.cornerR, Theme.borderWidth);
 		internal static void drawTooltipBg(Rect rect) => Theme.drawRoundedBox(rect, Surfaces.m_surface1, Surfaces.m_overlay0, Theme.cornerR, Theme.borderWidth);
 		internal static void drawSidebarBg(Rect rect) => Theme.drawRoundedBox(rect, ColorMath.fade(Surfaces.m_mantle, Theme.panelAlpha), Surfaces.kTransparent, Theme.cornerR, 0f);
+		internal static void drawInsetBg(Rect rect)
+		{
+			const float kInsetDepth = 0.5f;
+			Theme.drawRoundedBox(rect, ColorMath.fade(ColorMath.lerp(Surfaces.m_surface0, Surfaces.m_mantle, kInsetDepth), Theme.blockAlpha), ColorMath.kTransparent, Theme.cornerR, 0f);
+		}
+
 		internal static void drawLogBg(Rect rect) => Theme.drawRoundedBox(rect, ColorMath.fade(Surfaces.m_mantle, Theme.blockAlpha), Surfaces.m_subtleBorder, Theme.cornerR, Theme.borderWidth);
 
 		internal static void drawTitleBand(Rect windowRect, float bandH, float accentH, Color overlay)
@@ -1043,6 +1050,10 @@ namespace Trellis
 			Theme.sectionHeader.clipping = TextClipping.Clip;
 			Theme.sectionHeader.alignment = TextAnchor.MiddleLeft;
 			Theme.sectionHeader.padding = new RectOffset(Theme.kSectionPadLeft, 0, 0, 0);
+			Theme.subHeader = Theme.createStyle(font, FontSizes.kCompact, () => Text.m_secondary);
+			Theme.subHeader.fontStyle = FontStyle.Bold;
+			Theme.subHeader.richText = true;
+			Theme.subHeader.clipping = TextClipping.Clip;
 			// two styles because GUI.color can only darken text
 			Theme.tacticalHeader = Theme.createStyle(font, FontSizes.kCompact, () => Theme.m_sectionTitle);
 			Theme.tacticalHeader.fontStyle = FontStyle.Bold;
