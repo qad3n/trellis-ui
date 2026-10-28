@@ -7,7 +7,6 @@
 		internal const float kAlphaDim = 0.08f;
 		internal const float kAlphaSubtle = 0.12f;
 		internal const float kAlphaAcute = 0.15f;
-		internal const float kActiveHover = 0.18f;
 		internal const float kAlphaHover = 0.3f;
 		internal const float kAlphaSelection = 0.4f;
 		internal const float kAlphaGlow = 0.5f;

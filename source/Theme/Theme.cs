@@ -73,7 +73,6 @@ namespace Trellis
 		private static Color m_popupBorder;
 		private static Color m_sectionTitle;
 		private static Color m_accentFaint;
-		private static Color m_accentSubtle;
 		private static Color m_accentGlow;
 		private static Color m_blockBorder;
 		private static bool m_initialized;
@@ -164,17 +163,17 @@ namespace Trellis
 		// equal channels linearize to one 8 bit code so vulkan cant give them a navy cast
 		private static class BaseHex
 		{
-			internal const string kBase = "171717";
-			internal const string kMantle = "0F0F0F";
-			internal const string kPanel = "1D1D1D";
-			internal const string kSurface0 = "242424";
-			internal const string kSurface1 = "2D2D2D";
-			internal const string kSurface2 = "383838";
-			internal const string kOverlay0 = "505050";
-			internal const string kBorderColor = "0C0C0C";
-			internal const string kSubtleBorder = "3B3B3B";
-			internal const string kTextPrimary = "E0E0E0";
-			internal const string kTextSecondary = "A9A9A9";
+			internal const string kBase = "1B1B1B";
+			internal const string kMantle = "141414";
+			internal const string kPanel = "202020";
+			internal const string kSurface0 = "262626";
+			internal const string kSurface1 = "303030";
+			internal const string kSurface2 = "3A3A3A";
+			internal const string kOverlay0 = "474747";
+			internal const string kBorderColor = "0D0D0D";
+			internal const string kSubtleBorder = "333333";
+			internal const string kTextPrimary = "ECECEC";
+			internal const string kTextSecondary = "9E9E9E";
 			internal const string kPositive = "4CAF50";
 			internal const string kWarning = "D4A017";
 			internal const string kDanger = "E05555";
@@ -197,6 +196,11 @@ namespace Trellis
 		private static class HoverText
 		{
 			internal const float kTargetLuminance = 0.55f;
+		}
+
+		private static class OnAccent
+		{
+			internal const float kLightLuminance = 0.4f;
 		}
 
 		private static class TintModel
@@ -848,21 +852,22 @@ namespace Trellis
 		{
 			Color clear = Surfaces.kTransparent;
 
-			Theme.kButtonChrome.set(Surfaces.m_surface1, Surfaces.m_surface2, Surfaces.m_surface2, Surfaces.m_overlay0, Surfaces.m_surface0, Surfaces.m_surface1);
+			// neutral chrome has no frame since a border lighter than its fill reads as an inner glow
+			Theme.kButtonChrome.set(Surfaces.m_surface1, clear, Surfaces.m_surface2, clear, Surfaces.m_surface0, clear);
 
 			Theme.kDangerChrome.set(Status.m_red, Status.m_red, Status.m_redHover, Status.m_redHover, ColorMath.shade(Status.m_red, Theme.kPressShade), Status.m_red);
 
 			Theme.kPopupChrome.set(Theme.m_accent, Theme.m_accentDim, Theme.m_accentHover, Theme.m_accent, Theme.m_accentDim, Theme.m_accentDim);
 
-			Theme.kTabChrome.set(clear, clear, ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kTabHover)), clear, Surfaces.m_surface2, Surfaces.m_overlay0);
+			Theme.kTabChrome.set(clear, clear, ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kTabHover)), clear, Surfaces.m_surface2, clear);
 
 			Theme.kActiveTab.set(Theme.m_tabFill, clear, Theme.m_tabHover, clear, ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaDim)), clear);
 
-			Theme.kSubTab.set(Surfaces.m_surface1, Surfaces.m_surface2, Surfaces.m_surface2, Surfaces.m_overlay0, Surfaces.m_overlay0, Surfaces.m_overlay0);
+			Theme.kSubTab.set(Surfaces.m_surface1, clear, Surfaces.m_surface2, clear, Surfaces.m_overlay0, clear);
 
-			Theme.kActiveSubTab.set(Theme.m_accentSubtle, clear, ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kActiveHover)), clear, ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaDim)), clear);
+			Theme.kActiveSubTab.set(Surfaces.m_surface2, clear, Surfaces.m_surface2, clear, Surfaces.m_overlay0, clear);
 
-			Theme.kDropdownChrome.set(Surfaces.m_surface1, Surfaces.m_overlay0, Surfaces.m_surface2, Theme.m_accent, Surfaces.m_surface1, Theme.m_accentDim);
+			Theme.kDropdownChrome.set(Surfaces.m_surface1, clear, Surfaces.m_surface2, Theme.m_accent, Surfaces.m_surface1, Theme.m_accentDim);
 
 			// not activeTab since bolding reflows the label under the cursor
 			Theme.kDropdownOpen.set(Surfaces.m_surface2, Theme.m_accent, Surfaces.m_surface2, Theme.m_accentHover, Surfaces.m_surface1, Theme.m_accentDim);
@@ -870,11 +875,13 @@ namespace Trellis
 			// an armed keybind brightens on press since a darker press read as disarmed
 			Theme.kKeybindCapture.set(Theme.captureFill(ThemeConstants.CaptureTint.kRest), Theme.m_accentHover, Theme.captureFill(ThemeConstants.CaptureTint.kHover), Theme.m_accentHover, Theme.captureFill(ThemeConstants.CaptureTint.kPress), Theme.m_accentHover);
 
-			Theme.kFieldChrome.set(Surfaces.m_surface1, Surfaces.m_subtleBorder, Surfaces.m_surface2, Surfaces.m_overlay0, Surfaces.m_surface2, ColorMath.lerp(Surfaces.m_subtleBorder, Theme.m_accent, ThemeConstants.kFocusTint));
+			Theme.kFieldChrome.set(Surfaces.m_surface1, clear, Surfaces.m_surface2, clear, Surfaces.m_surface2, ColorMath.lerp(Surfaces.m_subtleBorder, Theme.m_accent, ThemeConstants.kFocusTint));
 
-			Theme.kItemChrome.set(clear, clear, Theme.m_accent, Theme.m_accentDim, Theme.m_accent, Theme.m_accentDim);
+			// opaque accent washed out the light item text so hover only tints the row
+			Color itemHover = ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaHover));
+			Theme.kItemChrome.set(clear, clear, itemHover, Theme.m_accentDim, itemHover, Theme.m_accentDim);
 
-			Theme.kCheckOff.set(Surfaces.m_surface1, Surfaces.m_subtleBorder, Surfaces.m_surface2, Surfaces.m_overlay0, Surfaces.m_surface2, Surfaces.m_overlay0);
+			Theme.kCheckOff.set(Surfaces.m_surface1, clear, Surfaces.m_surface2, clear, Surfaces.m_surface2, clear);
 
 			Color checkDim = Theme.shaded(Theme.m_checkColor, ThemeConstants.kDim);
 			Theme.kCheckOn.set(Theme.m_checkColor, checkDim, Theme.shaded(Theme.m_checkColor, ThemeConstants.kHover), Theme.m_checkColor, Theme.m_checkColor, checkDim);
@@ -901,7 +908,6 @@ namespace Trellis
 			Theme.m_popupBorder = Theme.slot(ThemeSlot.PopupBorder, ColorMath.lerp(Theme.m_accent, Surfaces.m_borderColor, ThemeConstants.kBorderMix));
 			Theme.m_sectionTitle = Theme.slot(ThemeSlot.HeaderTitle, ThemeConstants.kTitle.apply(ah, aS, av));
 			Theme.m_accentFaint = ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaDim));
-			Theme.m_accentSubtle = ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaSubtle));
 			Theme.m_accentGlow = ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaGlow));
 			Theme.m_accentBright = ThemeConstants.kBright.apply(ah, aS, av);
 			Theme.m_blockBorder = Theme.slot(ThemeSlot.ContainerBorder, ColorMath.lerp(Surfaces.m_subtleBorder, Theme.m_accent, ThemeConstants.kBorderTint));
@@ -934,7 +940,7 @@ namespace Trellis
 			UiLog.debug("[Theme.initCore] stage colors+font done");
 
 			Theme.titleAccent = Theme.createFlat(() => Theme.m_accentGlow);
-			Theme.accentBar = Theme.createFlat(() => Theme.m_accentBright);
+			Theme.accentBar = Theme.createFlat(() => Theme.m_accent);
 			Theme.accentFaint = Theme.createFlat(() => Theme.m_accentFaint);
 
 			UiLog.debug("[Theme.initCore] stage box+flat textures done");
@@ -967,6 +973,8 @@ namespace Trellis
 			UiLog.debug("[Theme.initCore] complete");
 		}
 
+		// light text vanishes on a pale accent fill
+		private static Color onAccent() => ColorMath.relativeLuminance(Theme.m_accent) > OnAccent.kLightLuminance ? Surfaces.m_base : Text.m_primary;
 		private static Color scrollHover() => ColorMath.fade(Theme.m_scrollFill, ThemeConstants.kAlphaHover);
 		private static Color scrollGlow() => ColorMath.fade(Theme.m_scrollFill, ThemeConstants.kAlphaGlow);
 		private static Color faintColor() => ColorMath.fade(Theme.m_accent, Theme.accentAlpha(ThemeConstants.kAlphaFaint));
@@ -1072,7 +1080,7 @@ namespace Trellis
 			Theme.popupLabel.alignment = TextAnchor.MiddleCenter;
 			Theme.popupLabel.wordWrap = true;
 			Theme.popupLabel.richText = true;
-			Theme.popupButton = Theme.createStyle(font, FontSizes.kBody, () => Text.m_primary);
+			Theme.popupButton = Theme.createStyle(font, FontSizes.kBody, Theme.onAccent);
 			Theme.popupButton.alignment = TextAnchor.MiddleCenter;
 			Theme.popupButton.fontStyle = FontStyle.Bold;
 			Theme.popupButton.padding = new RectOffset(Theme.kPopupPadLeft, Theme.kPopupPadRight, Theme.kPopupPadTop, Theme.kPopupPadBottom);

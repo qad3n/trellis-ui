@@ -7,8 +7,6 @@ namespace Trellis
 	internal static partial class Widgets
 	{
 		internal const float kSubTabBarH = Widgets.kSubTabH + MenuHost.kContentMargin;
-		private const float kSubTabAccentStartRatio = 0.2f;
-		private const float kSubTabAccentWidthRatio = 0.6f;
 		private const float kSubTabAccentThickness = 2f;
 		private const float kSubTabEpsilon = 0.5f;
 		private const float kSubTabH = 28f;
@@ -43,9 +41,7 @@ namespace Trellis
 				MenuHost.closePopups();
 			}
 
-			float selectedOffset = selected * (tabW + kGap) + tabW * Widgets.kSubTabAccentStartRatio;
-
-			Rect target = RectMath.create(selectedOffset, Widgets.kSubTabH - Widgets.kSubTabAccentThickness, tabW * Widgets.kSubTabAccentWidthRatio, Widgets.kSubTabAccentThickness);
+			Rect target = RectMath.create(selected * (tabW + kGap), Widgets.kSubTabH - Widgets.kSubTabAccentThickness, tabW, Widgets.kSubTabAccentThickness);
 
 			int key = animKey != null ? animKey.GetHashCode() : names.GetHashCode();
 			Widgets.kSubTabWidths.TryGetValue(key, out float lastW);
