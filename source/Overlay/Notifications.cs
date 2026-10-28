@@ -14,16 +14,16 @@ namespace Trellis
 		private static readonly Queue<Pending> kPending = new Queue<Pending>();
 		private static readonly object kLockObject = new object();
 
-		[Config(0x4AF05E50EBC71F5B)]
+		[Config]
 		internal static float NotifScale = 1f;
 
-		[Config(0x684E0E0C5E034F95)]
+		[Config]
 		internal static float NotifMinRead = Notifications.kDefaultMinRead;
 
-		[Config(0x1FE9E1EF36A2FF18)]
+		[Config]
 		internal static bool NotifAnimations = true;
 
-		[Config(0x5327248FE1E1FB0F)]
+		[Config]
 		internal static int NotifMaxVisible = Notifications.Capacity.kDefaultVisible;
 
 		private static NotifyLevel[] m_levels = Array.Empty<NotifyLevel>();

@@ -51,10 +51,10 @@ namespace Trellis
 		private static Action m_onFailure;
 		private static Func<KeyCode, bool> m_toggleKey;
 
-		[Config(0x69D5DA4A741DC27D)]
+		[Config]
 		internal static float winW = MenuHost.kDefaultWinW;
 
-		[Config(0x69D5DB4A741DC430)]
+		[Config]
 		internal static float winH = MenuHost.kDefaultWinH;
 
 		internal static bool m_visible;

@@ -8,7 +8,7 @@ namespace Trellis
 	{
 		internal static readonly string[] kModeNames = new[] { "Auto", "Off", "Colors", "sRGB Write" };
 
-		[Config(0xAB1212C67E65CFB4)]
+		[Config]
 		public static GuiColorMode GuiColorCorrection = GuiColorMode.Auto;
 
 		private static bool m_resolved;

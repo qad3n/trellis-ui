@@ -36,7 +36,7 @@ namespace Trellis
 		private static float m_clipY;
 		private static readonly List<Vector2> kClipOrigins = new List<Vector2>();
 
-		[Config(0x439DEEC54A46B271)]
+		[Config]
 		internal static float DpiScale = 1f;
 
 		private static class ContentCache

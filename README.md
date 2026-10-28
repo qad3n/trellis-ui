@@ -316,4 +316,6 @@ Mark settings with `[Config(id)]` using any id that stays the same. Trellis neve
 static float m_speed = 1f;
 ```
 
+If your build stamps ids before obfuscation, write `[Config]` and let the build hash `Owner.Field` into the id. After a rename, pin the old name with `[Config("Owner.oldField")]` so saved values still load.
+
 `sample/` has a complete plugin.

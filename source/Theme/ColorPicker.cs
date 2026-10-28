@@ -26,7 +26,7 @@ namespace Trellis
 
 		private static int m_cacheFrame = -1;
 
-		[Config(0x377A231807F4F303)]
+		[Config]
 		private static string rainbowState = string.Empty;
 
 		private static Texture2D m_hueTexture;

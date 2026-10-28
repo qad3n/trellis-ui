@@ -11,67 +11,67 @@ namespace Trellis
 		private const string kDefaultTint = "00AAFF";
 		private const int kHashMix = 397;
 
-		[Config(0x9B602204F7BA78FC)]
+		[Config]
 		public static float SurfaceTint;
 
-		[Config(0x01A036280B59EB03)]
+		[Config]
 		public static float SurfaceContrast = ThemeConfig.kDefaultContrast;
 
-		[Config(0xDED11F5A01A533BD)]
+		[Config]
 		public static float Brightness = 1f;
 
-		[Config(0xA9A89D494A5DD79D)]
+		[Config]
 		public static float BorderStrength = 1f;
 
-		[Config(0x77F6D498840840B0)]
+		[Config]
 		public static float BorderWidth = 1f;
 
-		[Config(0x788D59E89BAF02B1)]
+		[Config]
 		public static float AccentIntensity = 1f;
 
-		[Config(0x1C1301098448BD4A)]
+		[Config]
 		public static float TextBrightness = 1f;
 
-		[Config(0x6D66FB5C9E02FC9D)]
+		[Config]
 		public static float CornerRadius;
 
-		[Config(0x7096F40E751C95FB)]
+		[Config]
 		public static bool TacticalHeaders;
 
-		[Config(0x1321CAF1BC5415F2)]
+		[Config]
 		public static SurfaceTintSource TintSource = SurfaceTintSource.Accent;
 
-		[Config(0x43722D3A00C7BBF6)]
+		[Config]
 		public static Color TintColor = ColorHex.parse(ThemeConfig.kDefaultTint);
 
-		[Config(0x03BFBB63B08E07AA)]
+		[Config]
 		public static bool[] SlotOverride = new bool[ThemeSlots.kCount];
 
-		[Config(0x5A0E90A55BEBB085)]
+		[Config]
 		public static Color[] SlotColor = new Color[ThemeSlots.kCount];
 
-		[Config(0x1988552810D27645)]
+		[Config]
 		public static MenuWindowBgMode BackgroundMode = MenuWindowBgMode.Solid;
 
-		[Config(0x503CC5947DBF4DC5)]
+		[Config]
 		public static MenuWindowBgFit BackgroundFit = MenuWindowBgFit.Cover;
 
-		[Config(0x3C6C9CC6A1EF1853)]
+		[Config]
 		public static string BackgroundImage = string.Empty;
 
-		[Config(0x2CBA77DBBB550F8F)]
+		[Config]
 		public static Color BackgroundTint = ColorMath.kWhite;
 
-		[Config(0x5F030A9485649918)]
+		[Config]
 		public static float BackgroundDim = ThemeConfig.kDefaultDim;
 
-		[Config(0x2EEAE7302D80B122)]
+		[Config]
 		public static float MenuOpacity = 1f;
 
-		[Config(0x0D48D7F8D8079791)]
+		[Config]
 		public static float PanelOpacity = ThemeConfig.kDefaultPanelOpacity;
 
-		[Config(0xA5006B71264F2D48)]
+		[Config]
 		public static float BlockOpacity = ThemeConfig.kDefaultBlockOpacity;
 
 		internal static class Limits

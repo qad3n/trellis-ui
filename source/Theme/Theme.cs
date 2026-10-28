@@ -64,7 +64,7 @@ namespace Trellis
 
 		private static readonly int[] kPrewarmSizes = new[] { FontSizes.kSmall, FontSizes.kCompact, FontSizes.kBody, FontSizes.kPopup, FontSizes.kTitle };
 
-		[Config(0x7617EE4661ED5F6D)]
+		[Config]
 		public static Color AccentColor = ColorHex.parse("00AAFF");
 
 		internal static Color m_accent;
