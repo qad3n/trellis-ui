@@ -32,7 +32,6 @@ namespace Trellis
 		private static readonly Regex kBracketSpan = new Regex(@"\[([0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?|-)\]", RegexOptions.Compiled);
 		private static readonly Regex kControlChars = new Regex(@"[\x00-\x08\x0B\x0E-\x1F\x7F]", RegexOptions.Compiled);
 		private static readonly Regex kSpaceControl = new Regex(@"[\t\n\r\f\v]", RegexOptions.Compiled);
-		private static readonly Regex kInlineControl = new Regex(@"[\t\f\v]", RegexOptions.Compiled);
 		private static readonly Regex kUrlRegex = new Regex(@"\b(?:https?://|www\.)[^\s<>""'\[\]]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex kTrailingPunct = new Regex(@"[.,)\]!?;:]+$", RegexOptions.Compiled);
 		private static readonly MarkupRules kNameRules = new MarkupRules(true, true, false);
@@ -365,14 +364,6 @@ namespace Trellis
 			return truncated;
 		}
 
-		internal static string sanitizeLabel(string text, int maxTotal, int maxVisible)
-		{
-			string cleaned = RichText.stripControls(text, maxTotal, true);
-			return RichText.truncateVisible(RichText.balanceMarkup(RichText.fromGameHex(cleaned), RichText.kDisplayRules), maxVisible);
-		}
-
-		internal static string stripControls(string text, int maxLength) => RichText.stripControls(text, maxLength, false);
-
 		internal static string decorateUrls(string formatted, List<UrlSpan> spans, string hex, int maxSpans)
 		{
 			spans.Clear();
@@ -645,19 +636,13 @@ namespace Trellis
 			return markup ? text[..open] : text;
 		}
 
-		private static string stripControls(string text, int maxLength, bool keepNewlines)
+		internal static string stripControls(string text, int maxLength)
 		{
 			if (string.IsNullOrEmpty(text))
 				return string.Empty;
 
 			string limited = text.Length <= maxLength ? text : RichText.trimTag(text[..maxLength]);
-			if (!keepNewlines)
-				return RichText.kControlChars.Replace(RichText.kSpaceControl.Replace(limited, " "), string.Empty);
-
-			string unifiedNewlines = limited.Replace("\r\n", "\n").Replace('\r', '\n');
-
-			string normalized = RichText.kInlineControl.Replace(unifiedNewlines, " ");
-			return RichText.kControlChars.Replace(normalized, string.Empty);
+			return RichText.kControlChars.Replace(RichText.kSpaceControl.Replace(limited, " "), string.Empty);
 		}
 
 		private static string trimTag(string text)
