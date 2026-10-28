@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
@@ -12,8 +13,12 @@ namespace Trellis
 		private const string kSoftnessProperty = "_OutlineSoftness";
 		private const string kDilateProperty = "_FaceDilate";
 		private const string kCloneSuffix = " Shadow";
+		private const string kCachedAssetMethod = nameof(TextSettings.GetCachedFontAsset);
 
 		private static readonly Dictionary<IntPtr, Font> kClones = new Dictionary<IntPtr, Font>();
+
+		// unity 6 dropped the shader parameter and a direct call to the missing overload aborts the jit
+		private static readonly MethodInfo kCachedAsset = typeof(TextSettings).GetMethod(ShadowFont.kCachedAssetMethod, new[] { typeof(Font), typeof(Shader) }) ?? typeof(TextSettings).GetMethod(ShadowFont.kCachedAssetMethod, new[] { typeof(Font) });
 
 		private static class Shape
 		{
@@ -51,8 +56,7 @@ namespace Trellis
 				clone.name = source.name + ShadowFont.kCloneSuffix;
 				clone.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
-				// same cache key imgui uses so this is the asset its text handles draw with
-				FontAsset asset = RuntimeTextSettings.defaultTextSettings.GetCachedFontAsset(clone, shader);
+				FontAsset asset = ShadowFont.cachedAsset(clone, shader);
 				Material material = Live.isUnityAlive(asset) ? asset.material : null;
 				if (!Live.isUnityAlive(material))
 				{
@@ -72,6 +76,16 @@ namespace Trellis
 				UiLog.logException("ShadowFont.create", ex);
 				return source;
 			}
+		}
+
+		// same cache key imgui uses so this is the asset its text handles draw with
+		private static FontAsset cachedAsset(Font font, Shader shader)
+		{
+			if (ShadowFont.kCachedAsset == null)
+				return null;
+
+			object[] args = ShadowFont.kCachedAsset.GetParameters().Length == 2 ? new object[] { font, shader } : new object[] { font };
+			return ShadowFont.kCachedAsset.Invoke(RuntimeTextSettings.defaultTextSettings, args) as FontAsset;
 		}
 	}
 }
