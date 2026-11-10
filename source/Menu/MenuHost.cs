@@ -69,7 +69,7 @@ namespace Trellis
 		private static int m_activeTab;
 		private static float m_failureNotify = -MenuHost.kNotifySeconds;
 
-		internal static float dpiScale { get => Gui.DpiScale; set => Gui.DpiScale = value; }
+		internal static float dpiScale { get => Gui.DpiScale; set => MenuHost.setDpi(value); }
 
 		private static float displayFade => Fade.frame(ref MenuHost.m_windowLight, MenuHost.m_visible, MotionMath.extent(MenuHost.winW, MenuHost.winH), AnimationConfig.windowEnabled);
 		internal static bool windowShown => MenuHost.m_visible || !Fade.dark(MenuHost.m_windowLight);
@@ -174,7 +174,7 @@ namespace Trellis
 			}
 			else if (MenuHost.m_drag.m_resizeEdges != 0)
 			{
-				Rect resized = MenuHost.m_drag.resize(mouse, MenuHost.kMinW, MenuHost.kMinH);
+				Rect resized = MenuHost.m_drag.resize(mouse, MenuHost.minW, MenuHost.minH);
 				MenuHost.m_winX = RectMath.x(resized);
 				MenuHost.m_winY = RectMath.y(resized);
 				MenuHost.winW = RectMath.w(resized);

@@ -14,10 +14,10 @@ namespace Trellis
 
 		internal static string[] list() => UiImages.m_list?.Invoke() ?? Array.Empty<string>();
 
-		internal static bool tryLoad(string name, TextureWrapMode wrapMode, out Texture2D texture, out string status, out ImagePreview preview)
+		internal static bool tryLoad(string name, TextureWrapMode wrapMode, bool linear, out Texture2D texture, out string status, out ImagePreview preview)
 		{
 			if (UiImages.m_load != null)
-				return UiImages.m_load(name, wrapMode, out texture, out status, out preview);
+				return UiImages.m_load(name, wrapMode, linear, out texture, out status, out preview);
 
 			texture = null;
 			status = UiImages.hint;

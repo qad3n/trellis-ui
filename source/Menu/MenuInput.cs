@@ -9,8 +9,8 @@ namespace Trellis
 	{
 		internal const int kFirstExtra = 2;
 		private const int kLastExtra = 6;
+		private const int kMaxHeldEvents = 8;
 
-		private static EventSystem m_disabledEvents;
 		private static int m_inputFrame = -1;
 		private static int m_mouseFrame = -1;
 		private static float m_mouseX;
@@ -29,6 +29,8 @@ namespace Trellis
 
 		// an imgui window doesnt stop a ugui raycast so one click hits both
 		private static readonly List<Func<bool>> kClaims = new List<Func<bool>>();
+		// disabling the current system promotes the next one and a host ui may spawn one while none is current
+		private static readonly List<EventSystem> kHeldEvents = new List<EventSystem>();
 		internal static void consumeMouseDown0() => MenuHost.m_mouseDown0Consumed = true;
 		internal static void consumeScroll() => MenuHost.scrollDelta = 0f;
 
@@ -84,19 +86,24 @@ namespace Trellis
 		{
 			if (MenuHost.m_inputClaim || MenuHost.overlayClaimed())
 			{
-				if (Live.isUnityAlive(MenuHost.m_disabledEvents))
-					return;
-
-				EventSystem eventSystem = EventSystem.current;
-				if (Live.isUnityAlive(eventSystem) && eventSystem.enabled)
-				{
-					eventSystem.enabled = false;
-					MenuHost.m_disabledEvents = eventSystem;
-				}
+				MenuHost.holdEvents();
 				return;
 			}
 
 			MenuHost.enableEvents();
+		}
+
+		private static void holdEvents()
+		{
+			for (int i = 0; i < MenuHost.kMaxHeldEvents; i++)
+			{
+				EventSystem eventSystem = EventSystem.current;
+				if (!Live.isUnityAlive(eventSystem) || !eventSystem.enabled)
+					return;
+
+				eventSystem.enabled = false;
+				MenuHost.kHeldEvents.Add(eventSystem);
+			}
 		}
 
 		private static void primeMouse(int frame)
@@ -137,23 +144,28 @@ namespace Trellis
 
 		private static void restoreInput() => MenuHost.setClaim(false);
 
+		// held order puts the original system back in front as current
 		private static void enableEvents()
 		{
-			EventSystem saved = MenuHost.m_disabledEvents;
-
-			MenuHost.m_disabledEvents = null;
-
-			if (!Live.isUnityAlive(saved))
+			if (MenuHost.kHeldEvents.Count == 0)
 				return;
 
-			try
+			foreach (EventSystem saved in MenuHost.kHeldEvents)
 			{
-				saved.enabled = true;
+				if (!Live.isUnityAlive(saved))
+					continue;
+
+				try
+				{
+					saved.enabled = true;
+				}
+				catch (Exception ex)
+				{
+					UiLog.logException("MenuHost.enableEvents", ex);
+				}
 			}
-			catch (Exception ex)
-			{
-				UiLog.logException("MenuHost.enableEvents", ex);
-			}
+
+			MenuHost.kHeldEvents.Clear();
 		}
 	}
 }

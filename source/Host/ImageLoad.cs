@@ -2,5 +2,5 @@
 
 namespace Trellis
 {
-	internal delegate bool ImageLoad(string name, TextureWrapMode wrapMode, out Texture2D texture, out string status, out ImagePreview preview);
+	internal delegate bool ImageLoad(string name, TextureWrapMode wrapMode, bool linear, out Texture2D texture, out string status, out ImagePreview preview);
 }

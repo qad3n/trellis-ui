@@ -9,6 +9,7 @@ namespace Trellis
 		private static Vector2 m_imageSize;
 		private static string m_loadedName;
 		private static bool m_loadAttempted;
+		private static bool m_loadedLinear;
 		private static string m_status = string.Empty;
 
 		internal static bool active => ThemeConfig.BackgroundMode == MenuWindowBgMode.Image && Live.isUnityAlive(MenuWindowBackground.m_texture);
@@ -108,18 +109,19 @@ namespace Trellis
 		{
 			if (ThemeConfig.BackgroundMode != MenuWindowBgMode.Image)
 				return;
-			if (MenuWindowBackground.m_loadAttempted && MenuWindowBackground.m_loadedName == ThemeConfig.BackgroundImage)
+			if (MenuWindowBackground.m_loadAttempted && MenuWindowBackground.m_loadedName == ThemeConfig.BackgroundImage && MenuWindowBackground.m_loadedLinear == GraphicsInfo.linearTextures)
 				return;
 
 			MenuWindowBackground.m_loadAttempted = true;
 			MenuWindowBackground.m_loadedName = ThemeConfig.BackgroundImage;
+			MenuWindowBackground.m_loadedLinear = GraphicsInfo.linearTextures;
 			MenuWindowBackground.load(MenuWindowBackground.m_loadedName);
 		}
 
 		private static void load(string name)
 		{
 			Textures.destroy(ref MenuWindowBackground.m_texture);
-			if (UiImages.tryLoad(name, TextureWrapMode.Clamp, out MenuWindowBackground.m_texture, out MenuWindowBackground.m_status, out MenuWindowBackground.m_preview))
+			if (UiImages.tryLoad(name, TextureWrapMode.Clamp, MenuWindowBackground.m_loadedLinear, out MenuWindowBackground.m_texture, out MenuWindowBackground.m_status, out MenuWindowBackground.m_preview))
 				MenuWindowBackground.m_imageSize = VectorMath.v2(MenuWindowBackground.m_texture.width, MenuWindowBackground.m_texture.height);
 		}
 

@@ -81,6 +81,9 @@ namespace Trellis
 		private static bool linearGui => GraphicsInfo.resolvedMode == GuiColorMode.Colors;
 		private static bool noSrgbWrite => GraphicsInfo.resolvedMode == GuiColorMode.SrgbWrite;
 
+		// with srgb write off nothing encodes a decoded srgb texel back so gui textures must load linear
+		internal static bool linearTextures => GraphicsInfo.noSrgbWrite;
+
 		internal static void detect()
 		{
 			if (GraphicsInfo.m_resolved)

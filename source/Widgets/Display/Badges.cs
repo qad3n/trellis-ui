@@ -15,6 +15,7 @@ namespace Trellis
 		private const float kBorderAlpha = 0.55f;
 		// a counting row reads "ADMIN +3" up to this many extras
 		private const int kMaxExtra = 13;
+		private const string kGroupSeparator = ", ";
 
 		private static readonly StringBuilder kGroupText = new StringBuilder();
 		private static BadgeRow[] m_rows = Array.Empty<BadgeRow>();
@@ -173,6 +174,9 @@ namespace Trellis
 				int badge = MenuHost.key(badges[i]);
 				if (i > start && (group == BadgeGroup.kNone || Badges.row(badge).m_group != group))
 					continue;
+
+				if (i > start)
+					text.Append(Badges.kGroupSeparator);
 
 				text.Append(Theme.tag(Badges.part(badge, Badges.row(badge).m_short, extra), Badges.color(badge)));
 			}
