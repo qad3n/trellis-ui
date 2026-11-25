@@ -12,7 +12,6 @@ namespace Trellis
 		private const string kKeybindCapturing = "<press a key>";
 		internal const string kKeybindTooltip = "Bind a key, mouse button or combo like Ctrl + I. Right click to clear.";
 		private const float kKeybindInlineGap = 10f;
-		private const float kKeybindConflictAlpha = 0.22f;
 
 		// the host names every bind sharing a chord so both key caps warn wherever they are drawn
 		internal static Func<KeyChord, string> m_keyConflict;
@@ -29,7 +28,6 @@ namespace Trellis
 
 		private static class KeybindCapture
 		{
-			internal const float kAlpha = 0.16f;
 			internal const int kSalt = 0x4B0D;
 			internal const float kEpsilon = 0.001f;
 		}
@@ -54,14 +52,15 @@ namespace Trellis
 
 			Rect rowRect = RectMath.create(offsetX, offsetY + y, w, MenuHost.kFieldH);
 
-			bool rowHovered = Gui.enabled && RectMath.contains(rowRect, MenuHost.scrollMouse);
+			bool rowHovered = Widgets.hovering(rowRect);
 
 			Rect labelRect = Widgets.dropdownLabelRect(y, w, buttonW);
 			UiText.fittedLabel(labelRect, UiText.bold(label), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
 
-			MenuHost.hoverTooltip(rowRect, tooltip);
+			if (Gui.enabled)
+				MenuHost.hoverTooltip(rowRect, tooltip);
 
-			value = Widgets.keybindButton(Widgets.dropdownButtonRect(y, w, buttonW), id, label, value, disabled);
+			value = Widgets.keybindButton(Widgets.dropdownButtonRect(y, w, buttonW), id, label, value);
 
 			Widgets.endDisabled();
 
@@ -89,7 +88,7 @@ namespace Trellis
 
 			Rect buttonRect = RectMath.create(offsetX + w - buttonW, offsetY + preY, buttonW, MenuHost.kFieldH);
 			MenuHost.hoverTooltip(buttonRect, keyTooltip);
-			key = Widgets.keybindButton(buttonRect, id, label, key, false);
+			key = Widgets.keybindButton(buttonRect, id, label, key);
 
 			Widgets.endRow(ref y, ref row);
 			return value;
@@ -111,7 +110,7 @@ namespace Trellis
 
 			Rect keyRect = RectMath.create(offsetX + w - buttonW, offsetY + y, buttonW, ButtonLayout.kHeight);
 			MenuHost.hoverTooltip(keyRect, keyTooltip);
-			key = Widgets.keybindButton(keyRect, id, button.m_label, key, false);
+			key = Widgets.keybindButton(keyRect, id, button.m_label, key);
 
 			Widgets.drawSpacer(ref y);
 			Widgets.endRow(ref y, ref row);
@@ -126,7 +125,7 @@ namespace Trellis
 
 		private static string keybindDisplay(string id, KeyChord value) => Widgets.m_keybindId == id ? Widgets.m_captureLabel : Widgets.formatKeybind(value);
 
-		private static KeyChord keybindButton(Rect buttonRect, string id, string label, KeyChord value, bool disabled)
+		private static KeyChord keybindButton(Rect buttonRect, string id, string label, KeyChord value)
 		{
 			bool capturing = Widgets.m_keybindId == id;
 
@@ -145,7 +144,7 @@ namespace Trellis
 			if (!capturing)
 				Widgets.drawConflict(buttonRect, value);
 
-			if (!disabled && MenuHost.mouseDown1 && RectMath.contains(buttonRect, MenuHost.scrollMouse))
+			if (Gui.enabled && MenuHost.mouseDown1 && RectMath.contains(buttonRect, MenuHost.scrollMouse))
 			{
 				value = default;
 
@@ -229,7 +228,7 @@ namespace Trellis
 			if (!Gui.repainting || captureT <= KeybindCapture.kEpsilon)
 				return;
 
-			Theme.drawRoundedTint(buttonRect, ColorMath.withAlpha(Theme.m_accent, KeybindCapture.kAlpha * captureT));
+			Theme.drawRoundedTint(buttonRect, ColorMath.fade(Theme.m_accent, ThemeConstants.Chrome.kCaptureAlpha * captureT));
 		}
 
 		// drawn after the row tooltip so the conflict owns the hover
@@ -240,7 +239,7 @@ namespace Trellis
 				return;
 
 			if (Gui.repainting)
-				Theme.drawRoundedTint(buttonRect, ColorMath.withAlpha(Theme.Status.m_gold, Widgets.kKeybindConflictAlpha));
+				Theme.drawRoundedTint(buttonRect, ColorMath.fade(Theme.Status.m_gold, ThemeConstants.Chrome.kConflictAlpha));
 			MenuHost.hoverTooltip(buttonRect, conflict);
 		}
 

@@ -11,7 +11,6 @@ namespace Trellis
 			internal const string kRemoveMark = "x";
 			internal const float kRemoveW = 14f;
 			internal const float kLineGap = 4f;
-			internal const float kHoverLift = 0.3f;
 			internal const int kHoverSalt = 0x0C41;
 		}
 
@@ -54,7 +53,7 @@ namespace Trellis
 
 		private static bool drawRemovableChip(Rect chip, string label, Color color, string tooltip)
 		{
-			bool hovered = Gui.enabled && RectMath.contains(chip, MenuHost.scrollMouse);
+			bool hovered = Widgets.hovering(chip);
 
 			float hoverT = MenuAnimation.hoverProgress(unchecked(label.GetHashCode() * Widgets.kKeyMix) ^ ChipFlow.kHoverSalt, hovered);
 			if (hovered)
@@ -62,7 +61,7 @@ namespace Trellis
 
 			if (Gui.repainting && !MenuHost.rowCullable(RectMath.y(chip), RectMath.h(chip)))
 			{
-				Badges.drawChip(chip, ColorMath.lerp(color, Theme.Text.m_primary, ChipFlow.kHoverLift * hoverT));
+				Badges.drawChip(chip, ColorMath.lerp(color, Theme.Text.m_primary, ThemeConstants.Chrome.kHoverLift * hoverT));
 
 				Rect text = RectMath.create(RectMath.x(chip), RectMath.y(chip), RectMath.w(chip) - ChipFlow.kRemoveW, RectMath.h(chip));
 				UiText.fittedLabel(text, label, Theme.badgeLabel, TextAnchor.MiddleCenter);

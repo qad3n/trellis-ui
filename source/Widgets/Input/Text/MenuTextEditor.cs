@@ -10,12 +10,9 @@ namespace Trellis
 	{
 		// prefix measurement is quadratic so pastes need a ceiling
 		internal const int kMaxLength = 4096;
-		private const float kSelectionAlpha = 0.35f;
-		private const float kHintAlpha = 0.45f;
 		private const char kMinPrintable = ' ';
 		private const char kDelChar = '\x7f';
 		private const char kNewLineChar = '\n';
-		private const char kWordSeparator = ' ';
 		private const string kNewLine = "\n";
 		private const int kGrowthFactor = 2;
 
@@ -305,7 +302,11 @@ namespace Trellis
 					return MenuTextEditor.insert(text, MenuTextEditor.kNewLine, cap);
 
 				case KeyCode.Escape:
+					return text;
+
 				case KeyCode.Tab:
+					if (TextInputFocus.traverse(shift ? -1 : 1))
+						current.Use();
 					return text;
 
 				default:
@@ -352,6 +353,8 @@ namespace Trellis
 
 		private static void moveCursor(string text, int direction, bool ctrl, bool shift)
 		{
+			MenuTextEditor.m_editTime = Gui.unscaledTime;
+
 			if (!shift && MenuTextEditor.m_cursor != MenuTextEditor.m_select)
 			{
 				MenuTextEditor.m_cursor = direction < 0 ? FastMath.min(MenuTextEditor.m_cursor, MenuTextEditor.m_select) : FastMath.max(MenuTextEditor.m_cursor, MenuTextEditor.m_select);
@@ -374,6 +377,8 @@ namespace Trellis
 
 		private static void moveVertical(string text, int direction, bool shift, bool multiline)
 		{
+			MenuTextEditor.m_editTime = Gui.unscaledTime;
+
 			int target = direction < 0 ? 0 : text.Length;
 			if (multiline)
 			{
@@ -391,6 +396,8 @@ namespace Trellis
 
 		private static void moveEdge(string text, int direction, bool ctrl, bool shift, bool multiline)
 		{
+			MenuTextEditor.m_editTime = Gui.unscaledTime;
+
 			int target = direction < 0 ? 0 : text.Length;
 			if (multiline && !ctrl)
 			{
@@ -519,10 +526,10 @@ namespace Trellis
 		private static int wordLeft(string text, int index)
 		{
 			int i = index;
-			while (i > 0 && text[i - 1] == MenuTextEditor.kWordSeparator)
+			while (i > 0 && char.IsWhiteSpace(text[i - 1]))
 				i--;
 
-			while (i > 0 && text[i - 1] != MenuTextEditor.kWordSeparator)
+			while (i > 0 && !char.IsWhiteSpace(text[i - 1]))
 				i--;
 			return i;
 		}
@@ -530,10 +537,10 @@ namespace Trellis
 		private static int wordRight(string text, int index)
 		{
 			int i = index;
-			while (i < text.Length && text[i] != MenuTextEditor.kWordSeparator)
+			while (i < text.Length && !char.IsWhiteSpace(text[i]))
 				i++;
 
-			while (i < text.Length && text[i] == MenuTextEditor.kWordSeparator)
+			while (i < text.Length && char.IsWhiteSpace(text[i]))
 				i++;
 			return i;
 		}
@@ -543,7 +550,7 @@ namespace Trellis
 			if (!Gui.repainting)
 				return;
 
-			bool hovered = Gui.enabled && RectMath.contains(rect, MenuHost.scrollMouse);
+			bool hovered = Widgets.hovering(rect);
 			Theme.drawField(rect, hovered, focused);
 
 			if (multiline)
@@ -573,7 +580,7 @@ namespace Trellis
 					float startX = MenuTextEditor.offset(FastMath.min(MenuTextEditor.m_cursor, MenuTextEditor.m_select));
 
 					float endX = MenuTextEditor.offset(FastMath.max(MenuTextEditor.m_cursor, MenuTextEditor.m_select));
-					MenuTextEditor.drawAccent(RectMath.create(baseX + startX, Caret.kInsetY, endX - startX, RectMath.h(rect) - Caret.kInsetY * 2f), MenuTextEditor.kSelectionAlpha);
+					MenuTextEditor.drawAccent(RectMath.create(baseX + startX, Caret.kInsetY, endX - startX, RectMath.h(rect) - Caret.kInsetY * 2f), ThemeConstants.Chrome.kSelectionAlpha);
 				}
 
 				float textW = FastMath.max(RectMath.w(rect), MenuTextEditor.m_padLeft + MenuTextEditor.offset(MenuTextEditor.m_prefixCount - 1) + MenuTextEditor.m_padRight);
@@ -658,14 +665,14 @@ namespace Trellis
 				if (endX <= startX)
 					continue;
 
-				MenuTextEditor.drawAccent(RectMath.create(layout.padLeft + startX, rowY + line * lineH, endX - startX, lineH), MenuTextEditor.kSelectionAlpha);
+				MenuTextEditor.drawAccent(RectMath.create(layout.padLeft + startX, rowY + line * lineH, endX - startX, lineH), ThemeConstants.Chrome.kSelectionAlpha);
 			}
 		}
 
 		private static void renderHint(Rect rect, string hint, GUIStyle style)
 		{
 			Color saved = Gui.color;
-			Gui.color = ColorMath.fade(saved, MenuTextEditor.kHintAlpha);
+			Gui.color = ColorMath.fade(saved, ThemeConstants.Chrome.kHintAlpha);
 			Gui.label(rect, hint, MenuTextEditor.plainStyle(style));
 			Gui.color = saved;
 		}

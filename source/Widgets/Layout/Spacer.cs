@@ -5,7 +5,7 @@
 		internal static class ButtonLayout
 		{
 			internal const float kHeight = 28f;
-			internal const float kGap = 8f;
+			internal const float kGap = ThemeConstants.Space.kBase;
 		}
 
 		private static void drawSpacer(ref float y, float buttonH = ButtonLayout.kHeight) => y += buttonH + ButtonLayout.kGap;

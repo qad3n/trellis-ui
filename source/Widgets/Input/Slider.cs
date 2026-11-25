@@ -33,6 +33,11 @@ namespace Trellis
 		private static string m_sliderEditText;
 		private static DoubleClick m_labelClick;
 
+		// a drag holds the mouse so every other control would light up as it passes underneath
+		internal static bool dragActive => MenuHost.mouseHeld0 && (Widgets.m_activeSlider != null || Widgets.barDragged);
+
+		internal static bool hovering(Rect rect) => Gui.enabled && !Widgets.dragActive && RectMath.contains(rect, MenuHost.scrollMouse);
+
 		private static class SliderSafety
 		{
 			internal const float kMaxMagnitude = 1000000f;
@@ -265,7 +270,7 @@ namespace Trellis
 
 			Rect rowRect = RectMath.create(offsetX, offsetY + y, w, labelAdvance + SliderLayout.kRowH);
 
-			bool rowHovered = Widgets.hoverRow(rowRect, tooltip);
+			bool rowHovered = Widgets.hoverRow(rowRect, tooltip) || Widgets.m_activeSlider == sliderId;
 
 			if (Gui.repainting && display != null)
 				UiText.fittedLabel(labelRect, Widgets.captionFor(label, display), Widgets.labelStyle(rowHovered), TextAnchor.MiddleLeft);
@@ -415,7 +420,7 @@ namespace Trellis
 
 			Rect area = RectMath.create(offsetX, offsetY + y, w, SliderLayout.kRowH);
 
-			bool hovered = Gui.enabled && RectMath.contains(area, MenuHost.scrollMouse);
+			bool hovered = Widgets.hovering(area);
 
 			if (dragging && MenuHost.scrollMouse.x < 0f)
 			{

@@ -94,7 +94,7 @@ namespace Trellis
 
 			float rowH = RectMath.h(rowRect);
 			if (index == Widgets.m_selectSelected)
-				Widgets.drawHighlight(rowRect, SelectableListLayout.kStripeW);
+				Widgets.drawHighlight(rowRect, ThemeConstants.Chrome.kAccentLine);
 
 			Rect switchRect = RectMath.create(x + SelectRowLayout.kPadX, top + (rowH - Widgets.kToggleSize) * 0.5f, Widgets.kToggleSize, Widgets.kToggleSize);
 			MenuAnimation.drawCheckbox(switchRect, item.m_enabled, RectMath.contains(switchRect, Widgets.listMouse), item.m_animId);
@@ -106,7 +106,7 @@ namespace Trellis
 			// dimmed rather than disabled because a disabled scope would shift every widget id after the list
 			Color prevColor = Gui.color;
 			if (!item.m_enabled)
-				Gui.color = ColorMath.fade(prevColor, HintLayout.kInactiveAlpha);
+				Gui.color = ColorMath.fade(prevColor, ThemeConstants.Chrome.kInactiveAlpha);
 
 			float titleTop = Widgets.m_selectCompact ? top + (rowH - SelectRowLayout.kTitleH) * 0.5f : top + SelectRowLayout.kTopPad;
 

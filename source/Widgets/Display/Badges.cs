@@ -9,10 +9,8 @@ namespace Trellis
 	internal static class Badges
 	{
 		internal const float kHeight = 18f;
-		internal const float kGap = 6f;
+		internal const float kGap = ThemeConstants.Space.kSnug;
 		private const float kTextPad = 14f;
-		private const float kFillShade = 0.62f;
-		private const float kBorderAlpha = 0.55f;
 		// a counting row reads "ADMIN +3" up to this many extras
 		private const int kMaxExtra = 13;
 		private const string kGroupSeparator = ", ";
@@ -132,7 +130,7 @@ namespace Trellis
 		}
 
 		// a raw texture fill stayed unsnapped while the shader border snapped
-		internal static void drawChip(Rect rect, Color color) => Theme.drawRoundedBox(rect, ColorMath.shade(color, Badges.kFillShade), ColorMath.rgba(0f, 0f, 0f, Badges.kBorderAlpha), Theme.cornerR, Theme.borderWidth);
+		internal static void drawChip(Rect rect, Color color) => Theme.drawRoundedBox(rect, ColorMath.shade(color, ThemeConstants.Chrome.kChipShade), ColorMath.rgba(0f, 0f, 0f, ThemeConstants.Chrome.kChipBorderAlpha), Theme.cornerR, Theme.borderWidth);
 
 		private static bool known(int badge) => badge >= 0 && badge < Badges.m_rows.Length;
 		private static BadgeRow row(int badge) => Badges.known(badge) ? Badges.m_rows[badge] : default;

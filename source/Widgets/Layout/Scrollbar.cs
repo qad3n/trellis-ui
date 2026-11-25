@@ -7,6 +7,9 @@ namespace Trellis
 	{
 		// a key that moves with the rects mints a new entry every frame
 		private static int m_scrollIds;
+		private static int m_barDragFrame = int.MinValue;
+
+		private static bool barDragged => Widgets.m_barDragFrame == Gui.frameCount || Widgets.m_barDragFrame == Gui.frameCount - 1;
 
 		private static class ScrollbarLayout
 		{
@@ -175,7 +178,7 @@ namespace Trellis
 
 			int hoverKey = Widgets.trackKey(ref state, ScrollbarLayout.kHoverSalt);
 
-			float hoverT = MenuAnimation.hoverProgress(hoverKey, scrollable && (state.m_dragging || RectMath.contains(thumbHit, mousePosition)));
+			float hoverT = MenuAnimation.hoverProgress(hoverKey, scrollable && (state.m_dragging || (!Widgets.dragActive && RectMath.contains(thumbHit, mousePosition))));
 
 			Color prev = Gui.color;
 			if (alpha < ScrollbarLayout.kOpaqueAlpha)
@@ -206,8 +209,12 @@ namespace Trellis
 			}
 			Gui.color = prev;
 
-			if (!scrollable)
+			// a track no taller than its thumb has no travel to map the mouse onto
+			if (!scrollable || scrollRange <= 0f)
+			{
+				state.m_dragging = false;
 				return false;
+			}
 
 			bool userInteracted = false;
 			if (mouseDown && RectMath.contains(trackHit, mousePosition))
@@ -247,6 +254,9 @@ namespace Trellis
 				else
 					state.m_dragging = false;
 			}
+
+			if (state.m_dragging)
+				Widgets.m_barDragFrame = Gui.frameCount;
 			return userInteracted;
 		}
 	}

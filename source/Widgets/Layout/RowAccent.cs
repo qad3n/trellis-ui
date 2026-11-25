@@ -6,7 +6,6 @@ namespace Trellis
 	{
 		private static class RowAccentLayout
 		{
-			internal const float kStripeWidth = 3f;
 			internal const float kStripeInset = 2f;
 			internal const float kTintAlpha = ThemeConstants.kAlphaSubtle;
 		}
@@ -18,7 +17,7 @@ namespace Trellis
 			Gui.fillRect(rowRect, ColorMath.withAlpha(accentColor, tintAlpha));
 
 			Rect stripeSpan = RectMath.create(RectMath.x(rowRect), RectMath.y(rowRect) + RowAccentLayout.kStripeInset, RectMath.w(rowRect), RectMath.h(rowRect) - RowAccentLayout.kStripeInset * 2f);
-			Gui.drawStroke(Gui.leftEdge(stripeSpan, RowAccentLayout.kStripeWidth), accentColor);
+			Gui.drawStroke(Gui.leftEdge(stripeSpan, ThemeConstants.Chrome.kStatusStripe), accentColor);
 		}
 
 		internal static void drawHighlight(Rect rowRect, float accentWidth = 0f)

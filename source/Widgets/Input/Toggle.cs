@@ -6,7 +6,7 @@ namespace Trellis
 {
 	internal static partial class Widgets
 	{
-		internal const float kFieldGap = 6f;
+		internal const float kFieldGap = ThemeConstants.Space.kSnug;
 		internal const int kKeyMix = 397;
 		private const float kToggleSize = 20f;
 		private const float kToggleGap = 8f;
@@ -140,7 +140,7 @@ namespace Trellis
 		{
 			string id = Widgets.widgetId("inlrev", label);
 			if (value)
-				MenuAnimation.noteOpened(id);
+				MenuAnimation.noteRevealed(id);
 			else
 				MenuAnimation.close(id);
 
@@ -183,7 +183,7 @@ namespace Trellis
 
 			Rect clickRect = RectMath.create(baseX, baseY, Widgets.kToggleSize + Widgets.kToggleGap + labelW, rowH);
 
-			bool rowHovered = !blocked && RectMath.contains(clickRect, MenuHost.scrollMouse);
+			bool rowHovered = !blocked && !Widgets.dragActive && RectMath.contains(clickRect, MenuHost.scrollMouse);
 
 			if (!blocked)
 				MenuHost.hoverTooltip(clickRect, tooltip);

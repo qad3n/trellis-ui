@@ -20,7 +20,7 @@ namespace Trellis
 		private static class Labels
 		{
 			internal const string kRefresh = "R";
-			internal const string kRefreshTooltip = "Re-scan mod/data/menu_backgrounds for images.";
+			internal const string kRefreshTooltip = "Re-scan the image folder.";
 			internal const string kEmpty = "<i>No images found.</i>";
 		}
 

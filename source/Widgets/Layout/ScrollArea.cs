@@ -9,10 +9,10 @@ namespace Trellis
 		{
 			internal const float kBarWidth = 8f;
 			internal const float kWideBar = 10f;
-			internal const float kGutter = 6f;
+			internal const float kGutter = ThemeConstants.Space.kSnug;
 			internal const float kSpeed = 40f;
 			internal const float kSlowSpeed = 30f;
-			internal const float kPanelInset = 4f;
+			internal const float kPanelInset = ThemeConstants.Space.kTight;
 		}
 
 		internal static ScrollRegion drawScrollRegion(Rect area, ref ScrollState state, float contentH, float barW, float gutter, float scrollSpeed, bool interactive, Action<ScrollRegion> drawContent, bool reserveBar = false)

@@ -12,7 +12,6 @@ namespace Trellis
 			internal const float kRowGap = 4f;
 			internal const int kHoverSalt = 0x5E17;
 			internal const float kHoverEpsilon = 0.001f;
-			internal const float kStripeW = 3f;
 		}
 
 		// the mouse in clip local space is offscreen when the list is not interactive
@@ -53,29 +52,34 @@ namespace Trellis
 			Vector2 clipMouse = interactive ? VectorMath.v2(MenuHost.scrollMouse.x - x, MenuHost.scrollMouse.y - y) : MenuHost.kOffscreenMouse;
 			Widgets.m_listMouse = clipMouse;
 
-			int listKey = unchecked((x.GetHashCode() * Widgets.kKeyMix) ^ y.GetHashCode()) ^ SelectableListLayout.kHoverSalt;
+			int listKey = Widgets.trackKey(ref scroll, SelectableListLayout.kHoverSalt);
 
 			Gui.beginClip(viewRect);
 
-			float entryY = -scroll.m_position.y;
-			for (int i = 0; i < count; i++)
+			try
 			{
-				float rowH = rowHeight(i);
-				if (entryY + rowH < 0f || entryY > listH)
+				float entryY = -scroll.m_position.y;
+				for (int i = 0; i < count; i++)
 				{
+					float rowH = rowHeight(i);
+					if (entryY + rowH < 0f || entryY > listH)
+					{
+						entryY += rowH + SelectableListLayout.kRowGap;
+						continue;
+					}
+
+					Rect rowRect = RectMath.create(0f, entryY, contentW, rowH);
+					Widgets.drawRowBg(rowRect, unchecked(listKey * Widgets.kKeyMix) ^ i, RectMath.contains(rowRect, clipMouse), false);
+
+					drawRow(i, rowRect, contentW);
+
 					entryY += rowH + SelectableListLayout.kRowGap;
-					continue;
 				}
-
-				Rect rowRect = RectMath.create(0f, entryY, contentW, rowH);
-				Widgets.drawRowBg(rowRect, unchecked(listKey * Widgets.kKeyMix) ^ i, RectMath.contains(rowRect, clipMouse), false);
-
-				drawRow(i, rowRect, contentW);
-
-				entryY += rowH + SelectableListLayout.kRowGap;
 			}
-
-			Gui.endClip();
+			finally
+			{
+				Gui.endClip();
+			}
 
 			int clicked = -1;
 			if (interactive && RectMath.contains(viewRect, MenuHost.scrollMouse) && MenuHost.scrollMouse.x < x + contentW && MenuHost.mouseDown0)
@@ -99,7 +103,7 @@ namespace Trellis
 			float inset = SelectableListLayout.kBgInset;
 			Rect pane = RectMath.create(MenuHost.m_blockOffset.x + inset, MenuHost.m_blockOffset.y + y + inset, w - inset, FastMath.clamp(contentH, 0f, maxH));
 
-			bool inside = Gui.enabled && RectMath.contains(pane, MenuHost.scrollMouse);
+			bool inside = Widgets.hovering(pane);
 
 			hovered = inside ? Widgets.rowAt(count, rowHeight, MenuHost.scrollMouse.y - RectMath.y(pane) + scroll.m_position.y) : -1;
 
@@ -114,7 +118,7 @@ namespace Trellis
 
 		internal static void drawRowBg(Rect rowRect, int hoverKey, bool hovered, bool selected)
 		{
-			float hoverT = MenuAnimation.hoverProgress(hoverKey, hovered);
+			float hoverT = MenuAnimation.hoverProgress(hoverKey, hovered && !Widgets.dragActive);
 
 			if (!Gui.repainting)
 				return;
@@ -122,7 +126,7 @@ namespace Trellis
 			if (selected)
 			{
 				Gui.drawTextureSnapped(rowRect, Theme.accentFaint);
-				Gui.drawStroke(Gui.leftEdge(rowRect, SelectableListLayout.kStripeW), Theme.accentBar);
+				Gui.drawStroke(Gui.leftEdge(rowRect, ThemeConstants.Chrome.kAccentLine), Theme.accentBar);
 			}
 
 			if (hoverT <= SelectableListLayout.kHoverEpsilon)

@@ -12,7 +12,7 @@ namespace Trellis
 			internal const float kPadX = 10f;
 			internal const float kPadY = 7f;
 			internal const float kTitleGap = 3f;
-			internal const float kTextInset = RowAccentLayout.kStripeWidth + BannerLayout.kPadX;
+			internal const float kTextInset = ThemeConstants.Chrome.kStatusStripe + BannerLayout.kPadX;
 			internal const int kFadeSalt = 0x0BA9;
 		}
 

@@ -37,14 +37,12 @@ namespace Trellis
 			internal const float kLabelGap = 12f;
 			internal const float kRowPadX = 8f;
 			internal const float kStatusPad = 8f;
-			internal const float kNeutralAlpha = 0.5f;
 		}
 
 		private static class HintLayout
 		{
 			internal const float kNotePad = 8f;
 			internal const float kNoteGap = 10f;
-			internal const float kInactiveAlpha = 0.5f;
 		}
 
 		internal static void closeMultiSelect()
@@ -111,14 +109,7 @@ namespace Trellis
 			if (animId == null)
 				return;
 
-			if (MenuAnimation.consumeClosed(animId))
-			{
-				Widgets.clearMultiSelect();
-				return;
-			}
-
-			bool interactive = Widgets.m_multiSelectId != null && !MenuAnimation.isClosingOrClosed(animId);
-			if (!interactive && !MenuAnimation.shouldRender(animId))
+			if (!MenuAnimation.sheetShown(animId, Widgets.m_multiSelectId != null, out bool interactive))
 			{
 				Widgets.clearMultiSelect();
 				return;
@@ -140,7 +131,7 @@ namespace Trellis
 			Rect popupRect = Widgets.multiSelectRect(viewRect, scrollOffset);
 			using (MenuAnimation.beginReveal(animId, popupRect, Widgets.m_multiSelectUp))
 			{
-				Theme.drawWindowBg(popupRect);
+				Theme.drawSheetBg(popupRect);
 
 				if (Widgets.m_multiSelectCycle)
 				{
@@ -165,7 +156,7 @@ namespace Trellis
 					Widgets.drawItemBg(itemRect, unchecked(animHash * Widgets.kKeyMix) ^ i, hovered, false);
 
 					Rect checkRect = RectMath.create(RectMath.x(itemRect) + Widgets.kMultiSelectCheckPad, RectMath.y(itemRect) + LayoutMath.centerOffset(MenuHost.kDropdownItemH, Widgets.kMultiSelectCheckSize), Widgets.kMultiSelectCheckSize, Widgets.kMultiSelectCheckSize);
-					MenuAnimation.drawCheckbox(checkRect, Widgets.m_multiSelectValues[i], hovered, Widgets.m_multiSelectChecks[i]);
+					MenuAnimation.drawCheckbox(checkRect, i < Widgets.m_multiSelectValues.Length && Widgets.m_multiSelectValues[i], hovered, Widgets.m_multiSelectChecks[i]);
 
 					float labelX = RectMath.xMax(checkRect) + Widgets.kMultiSelectCheckPad - Widgets.kMultiSelectPadLeft;
 
@@ -173,7 +164,7 @@ namespace Trellis
 
 					Color prevColor = Gui.color;
 					if (hint.m_inactive)
-						Gui.color = ColorMath.fade(prevColor, HintLayout.kInactiveAlpha);
+						Gui.color = ColorMath.fade(prevColor, ThemeConstants.Chrome.kInactiveAlpha);
 
 					if (!string.IsNullOrEmpty(hint.m_note))
 					{
@@ -309,6 +300,7 @@ namespace Trellis
 			Widgets.m_multiSelectAnim = Widgets.multiSelectAnim(id);
 			Widgets.m_multiSelectToggled = -1;
 			Widgets.m_multiSelectJustOpened = true;
+			Widgets.m_multiSelectChecks = null;
 
 			MenuAnimation.noteOpened(Widgets.m_multiSelectAnim);
 		}
@@ -398,6 +390,10 @@ namespace Trellis
 
 			Widgets.m_multiSelectToggled = -1;
 
+			// a saved selection can be shorter than a table that grew since
+			if (index >= selected.Length)
+				return;
+
 			bool wouldEmpty = requireOne && selected[index] && Widgets.countSelected(selected) <= 1;
 			if (wouldEmpty)
 				return;
@@ -436,7 +432,7 @@ namespace Trellis
 
 				bool neutral = state == Widgets.kNeutralState;
 				if (neutral)
-					Gui.color = ColorMath.fade(prevColor, CycleLayout.kNeutralAlpha);
+					Gui.color = ColorMath.fade(prevColor, ThemeConstants.Chrome.kInactiveAlpha);
 
 				UiText.fittedLabel(RectMath.create(labelX, RectMath.y(itemRect), labelW, MenuHost.kDropdownItemH), Widgets.m_multiSelectOptions[i], Theme.label, TextAnchor.MiddleLeft);
 				UiText.fittedLabel(RectMath.create(statusX, RectMath.y(itemRect), statusW, MenuHost.kDropdownItemH), Widgets.m_cycleLabels[state], Theme.valueLabel, TextAnchor.MiddleLeft);

@@ -22,9 +22,9 @@ namespace Trellis
 			internal const float kSubHeaderAdvance = 22f;
 			internal const float kSubHeaderTopGap = 14f;
 			internal const float kLabelRatio = 0.44f;
-			internal const float kValueGap = 8f;
+			internal const float kValueGap = ThemeConstants.Space.kBase;
 			internal const float kStackedAdvance = 20f;
-			internal const float kStackedIndent = 12f;
+			internal const float kStackedIndent = ThemeConstants.Space.kWide;
 		}
 
 		internal static class CountLine
@@ -149,7 +149,7 @@ namespace Trellis
 
 		private static bool hoverRow(Rect rowRect, string tooltip)
 		{
-			bool hovered = Gui.enabled && RectMath.contains(rowRect, MenuHost.scrollMouse);
+			bool hovered = Widgets.hovering(rowRect);
 
 			if (Gui.enabled)
 				MenuHost.hoverTooltip(rowRect, tooltip);

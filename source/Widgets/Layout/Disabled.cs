@@ -6,14 +6,14 @@ namespace Trellis
 {
 	internal static partial class Widgets
 	{
-		private const float kDisabledAlpha = 0.35f;
 		private const float kOpaqueThreshold = 0.999f;
 
-		private static readonly Stack<(Color color, bool enabled)> kDisabledStack = new Stack<(Color color, bool enabled)>();
+		private static readonly Stack<(Color color, bool enabled, bool disabled)> kDisabledStack = new Stack<(Color color, bool enabled, bool disabled)>();
 		private static readonly Dictionary<int, MotionValue> kDisabledAlphas = new Dictionary<int, MotionValue>();
 		private static readonly Dictionary<int, int> kDisabledCounts = new Dictionary<int, int>();
 
 		private static int m_disabledPass = -1;
+		private static int m_disabledScopes;
 
 		internal static void beginDisabled(bool disabled)
 		{
@@ -21,10 +21,14 @@ namespace Trellis
 
 			float current = Widgets.stepDisabled(id, disabled);
 
-			Widgets.kDisabledStack.Push((Gui.color, Gui.enabled));
+			Widgets.kDisabledStack.Push((Gui.color, Gui.enabled, disabled));
 
 			if (disabled)
+			{
 				Gui.enabled = false;
+
+				Widgets.m_disabledScopes++;
+			}
 
 			if (!(current < Widgets.kOpaqueThreshold))
 				return;
@@ -37,9 +41,26 @@ namespace Trellis
 			if (Widgets.kDisabledStack.Count == 0)
 				return;
 
-			(Color color, bool enabled) saved = Widgets.kDisabledStack.Pop();
+			(Color color, bool enabled, bool disabled) saved = Widgets.kDisabledStack.Pop();
 			Gui.color = saved.color;
 			Gui.enabled = saved.enabled;
+			if (saved.disabled)
+				Widgets.m_disabledScopes--;
+		}
+
+		internal static int disabledDepth => Widgets.kDisabledStack.Count;
+
+		// a reveal clip or a covered window only switches input off for a frame and is not a scope
+		internal static bool disabledScoped => Widgets.m_disabledScopes > 0;
+
+		// a block that throws leaves its scopes open and the caller restores the gui state itself
+		internal static void trimDisabled(int depth)
+		{
+			while (Widgets.kDisabledStack.Count > depth)
+			{
+				if (Widgets.kDisabledStack.Pop().disabled)
+					Widgets.m_disabledScopes--;
+			}
 		}
 
 		private static int nextDisabled()
@@ -63,7 +84,7 @@ namespace Trellis
 			if (!exists)
 				light = MotionValue.at(disabled ? 0f : 1f);
 
-			return FastMath.lerp(Widgets.kDisabledAlpha, 1f, Fade.cut(ref light, !disabled, MenuAnimation.enabled));
+			return FastMath.lerp(ThemeConstants.Chrome.kDisabledAlpha, 1f, Fade.cut(ref light, !disabled, MenuAnimation.enabled));
 		}
 	}
 }

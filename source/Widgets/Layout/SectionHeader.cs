@@ -13,7 +13,7 @@ namespace Trellis
 			internal const float kH = 22f;
 			internal const float kPadX = 10f;
 			internal const float kBorderH = 2f;
-			internal const float kBottomGap = 8f;
+			internal const float kBottomGap = ThemeConstants.Space.kSnug;
 			internal const float kRuleGap = 10f;
 			internal const float kRuleH = 1f;
 			internal const float kTrailingShare = 0.55f;
@@ -24,10 +24,10 @@ namespace Trellis
 			internal const float kH = 20f;
 			internal const float kCaretInset = 1f;
 			internal const float kCaretBox = 10f;
-			internal const float kCaretGap = 6f;
-			internal const float kTrailingGap = 8f;
-			internal const float kBottomGap = 6f;
-			internal const float kInsetPadX = 8f;
+			internal const float kCaretGap = ThemeConstants.Space.kSnug;
+			internal const float kTrailingGap = ThemeConstants.Space.kBase;
+			internal const float kBottomGap = ThemeConstants.Space.kSnug;
+			internal const float kInsetPadX = ThemeConstants.Space.kBase;
 			internal const float kHoverEpsilon = 0.001f;
 		}
 
@@ -107,7 +107,7 @@ namespace Trellis
 		{
 			Rect row = RectMath.create(RectMath.x(rect), RectMath.y(rect), RectMath.w(rect), DisclosureLayout.kH);
 
-			bool hovered = Gui.enabled && RectMath.contains(row, MenuHost.scrollMouse);
+			bool hovered = Widgets.hovering(row);
 
 			float open = MenuAnimation.disclosureProgress(animId, expanded);
 

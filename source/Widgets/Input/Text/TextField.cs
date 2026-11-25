@@ -19,7 +19,6 @@ namespace Trellis
 
 		private static class FocusLine
 		{
-			internal const float kH = 2f;
 			internal const int kSalt = 0x0F0C;
 			internal const float kEpsilon = 0.001f;
 		}
@@ -78,7 +77,7 @@ namespace Trellis
 
 			Rect rowRect = RectMath.create(offsetX, offsetY + y, w, Widgets.kAreaH);
 
-			bool rowHovered = Gui.enabled && RectMath.contains(rowRect, MenuHost.scrollMouse);
+			bool rowHovered = Widgets.hovering(rowRect);
 			if (Gui.enabled)
 				MenuHost.hoverTooltip(rowRect, tooltip);
 
@@ -153,10 +152,10 @@ namespace Trellis
 			float lineW = maxW * focusT;
 
 			Rect span = RectMath.create(RectMath.x(inner) + arc + (maxW - lineW) * 0.5f, RectMath.y(inner), lineW, RectMath.h(inner));
-			Gui.drawStroke(Gui.bottomEdge(span, FocusLine.kH), Theme.accentBar);
+			Gui.drawStroke(Gui.bottomEdge(span, ThemeConstants.Chrome.kAccentLine), Theme.accentBar);
 		}
 
-		private static bool rowHovered(float x, float screenY, float w, bool disabled) => !disabled && Gui.enabled && RectMath.contains(RectMath.create(x, screenY, w, MenuHost.kFieldH), MenuHost.scrollMouse);
+		private static bool rowHovered(float x, float screenY, float w, bool disabled) => !disabled && Widgets.hovering(RectMath.create(x, screenY, w, MenuHost.kFieldH));
 
 		private static string fixedEntry(Rect rect, string text, GUIStyle style, string controlName, TextEntryKind kind, char maskChar, int maxLength, string hint = null)
 		{

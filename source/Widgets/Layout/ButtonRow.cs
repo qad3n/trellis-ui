@@ -29,7 +29,8 @@ namespace Trellis
 		internal static bool drawRowEndButton(float rowY, float w, string label, string tooltip)
 		{
 			Rect rect = RectMath.create(MenuHost.m_blockOffset.x + w - MenuHost.kFieldH, MenuHost.m_blockOffset.y + rowY, MenuHost.kFieldH, MenuHost.kFieldH);
-			MenuHost.hoverTooltip(rect, tooltip);
+			if (Gui.enabled)
+				MenuHost.hoverTooltip(rect, tooltip);
 			return Widgets.scrollButton(rect, label, Theme.button);
 		}
 

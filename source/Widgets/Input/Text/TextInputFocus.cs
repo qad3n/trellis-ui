@@ -1,4 +1,5 @@
-﻿using Il2CppInterop.Runtime;
+﻿using System.Collections.Generic;
+using Il2CppInterop.Runtime;
 using UnityEngine;
 
 namespace Trellis
@@ -14,6 +15,10 @@ namespace Trellis
 		private static int m_missedFrames;
 		private static bool m_resyncTraced;
 		private static Il2CppSystem.Type m_editorType;
+		// two lists swap so the last full pass stays readable while the current one fills
+		private static List<string> m_order = new List<string>();
+		private static List<string> m_lastOrder = new List<string>();
+		private static int m_orderPass = -1;
 
 		internal static string activeName => TextInputFocus.m_activeName;
 		private static Il2CppSystem.Type editorType => TextInputFocus.m_editorType ??= Il2CppType.Of<TextEditor>();
@@ -61,6 +66,24 @@ namespace Trellis
 			TextInputFocus.m_resyncTraced = false;
 
 			MenuTextEditor.onFocusChanged();
+		}
+
+		// fields enlist in draw order so tab walks the last full pass and wraps
+		internal static bool traverse(int direction)
+		{
+			List<string> order = TextInputFocus.m_lastOrder;
+
+			int count = order.Count;
+			if (count <= 1)
+				return false;
+
+			int index = order.IndexOf(TextInputFocus.m_activeName);
+			if (index < 0)
+				return false;
+
+			int next = ((index + direction) % count + count) % count;
+			TextInputFocus.set(order[next]);
+			return true;
 		}
 
 		internal static void clearIf(string controlName)
@@ -135,9 +158,17 @@ namespace Trellis
 				TextInputFocus.m_missedFrames = 0;
 			}
 
+			if (Widgets.disabledScoped && TextInputFocus.m_activeName == controlName)
+			{
+				UiLog.trace($"[TextInputFocus.claim] '{controlName}' drawn disabled, releasing focus");
+
+				TextInputFocus.clear();
+				return false;
+			}
 			if (!Gui.enabled)
 				return false;
 
+			TextInputFocus.enlist(controlName);
 			if (MenuHost.rawMouseDown0)
 			{
 				bool inside = RectMath.contains(rect, MenuHost.scrollMouse);
@@ -152,6 +183,18 @@ namespace Trellis
 				}
 			}
 			return TextInputFocus.m_activeName == controlName;
+		}
+
+		private static void enlist(string controlName)
+		{
+			if (TextInputFocus.m_orderPass != Gui.passToken)
+			{
+				TextInputFocus.m_orderPass = Gui.passToken;
+
+				(TextInputFocus.m_order, TextInputFocus.m_lastOrder) = (TextInputFocus.m_lastOrder, TextInputFocus.m_order);
+				TextInputFocus.m_order.Clear();
+			}
+			TextInputFocus.m_order.Add(controlName);
 		}
 
 		private static bool setText(TextEditor editor, string text)

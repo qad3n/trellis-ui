@@ -33,7 +33,6 @@ namespace Trellis
 			internal const float kMinLabelW = 40f;
 			internal const float kPopupOffsetY = 2f;
 			internal const float kPopupRightPad = 10f;
-			internal const float kStripeW = 2f;
 			internal const float kHoverEpsilon = 0.001f;
 			internal const string kCaret = "  v";
 			internal const string kItemIndent = "  ";
@@ -108,14 +107,7 @@ namespace Trellis
 			if (animId == null || Widgets.m_dropdownOverlay != Widgets.m_overlayPass)
 				return;
 
-			if (MenuAnimation.consumeClosed(animId))
-			{
-				Widgets.clearDropdown();
-				return;
-			}
-
-			bool interactive = Widgets.m_dropdownId != null && !MenuAnimation.isClosingOrClosed(animId);
-			if (!interactive && !MenuAnimation.shouldRender(animId))
+			if (!MenuAnimation.sheetShown(animId, Widgets.m_dropdownId != null, out bool interactive))
 			{
 				Widgets.clearDropdown();
 				return;
@@ -127,7 +119,7 @@ namespace Trellis
 			Rect popupRect = Widgets.dropdownRect(viewRect, scrollOffset);
 			using (MenuAnimation.beginReveal(animId, popupRect, Widgets.m_dropdownUp))
 			{
-				Theme.drawWindowBg(popupRect);
+				Theme.drawSheetBg(popupRect);
 
 				int animHash = animId.GetHashCode();
 				for (int i = 0; i < Widgets.m_dropdownOptions.Length; i++)
@@ -145,7 +137,7 @@ namespace Trellis
 
 		internal static void drawItemBg(Rect itemRect, int hoverKey, bool hovered, bool selected)
 		{
-			float hoverT = MenuAnimation.hoverProgress(hoverKey, hovered);
+			float hoverT = MenuAnimation.hoverProgress(hoverKey, hovered && !Widgets.dragActive);
 
 			if (!Gui.repainting)
 				return;
@@ -159,7 +151,7 @@ namespace Trellis
 			if (!selected)
 				return;
 
-			Gui.drawStroke(Gui.leftEdge(itemRect, DropdownLayout.kStripeW), Theme.accentBar);
+			Gui.drawStroke(Gui.leftEdge(itemRect, ThemeConstants.Chrome.kAccentLine), Theme.accentBar);
 		}
 
 		internal static int drawDropdown(ref float y, float w, string label, string[] options, int selectedIndex, float reserveRight = 0f, string tooltip = null)
@@ -237,7 +229,12 @@ namespace Trellis
 		{
 			Widgets.m_dropdownAnchor = RectMath.create(anchorX, y, buttonW, MenuHost.kFieldH);
 			Widgets.m_dropdownOffset = MenuHost.m_blockOffset;
+
+			if (object.ReferenceEquals(Widgets.m_dropdownOptions, options))
+				return;
+
 			Widgets.m_dropdownOptions = options;
+			Widgets.m_dropdownLabels = Widgets.buildLabels(options);
 		}
 
 		private static void openDropdown(string id, float anchorX, float y, float buttonW, string[] options, int selectedIndex)
@@ -245,7 +242,6 @@ namespace Trellis
 			Widgets.m_dropdownId = id;
 			Widgets.m_dropdownAnim = Widgets.dropdownAnim(id);
 			Widgets.syncDropdown(anchorX, y, buttonW, options);
-			Widgets.m_dropdownLabels = Widgets.buildLabels(options);
 			Widgets.m_dropdownResult = -1;
 			Widgets.m_dropdownSelected = selectedIndex;
 			Widgets.m_dropdownOpened = true;
