@@ -118,11 +118,11 @@ namespace Trellis
 
 			float tooltipY = MenuHost.m_tooltipPosition.y + Tooltip.kOffsetXY;
 
-			if (tooltipX + tooltipW > MenuHost.kBaseWidth - Tooltip.kScreenMargin)
-				tooltipX = MenuHost.m_tooltipPosition.x - tooltipW - Tooltip.kScreenMargin;
+			if (tooltipX + tooltipW > MenuHost.designW - Tooltip.kScreenMargin)
+				tooltipX = FastMath.max(Tooltip.kScreenMargin, MenuHost.m_tooltipPosition.x - tooltipW - Tooltip.kScreenMargin);
 
 			if (tooltipY + tooltipH > MenuHost.designH - Tooltip.kScreenMargin)
-				tooltipY = MenuHost.m_tooltipPosition.y - tooltipH - Tooltip.kScreenMargin;
+				tooltipY = FastMath.max(Tooltip.kScreenMargin, MenuHost.m_tooltipPosition.y - tooltipH - Tooltip.kScreenMargin);
 
 			Color prev = Gui.color;
 

@@ -23,6 +23,7 @@ namespace Trellis
 		private static readonly Dictionary<int, ValueEntry> kDisplayedValues = new Dictionary<int, ValueEntry>();
 		private static readonly Dictionary<int, SwitchEntry> kSwitches = new Dictionary<int, SwitchEntry>();
 		private static readonly List<int> kGcScratch = new List<int>();
+		private static readonly Dictionary<long, int> kButtonCounts = new Dictionary<long, int>();
 		private static readonly float[] kChildLive = new float[SectionMeasure.kMaxDepth];
 		private static readonly float[] kChildSettled = new float[SectionMeasure.kMaxDepth];
 		private static readonly Dictionary<int, float> kFullHeights = new Dictionary<int, float>();
@@ -31,6 +32,7 @@ namespace Trellis
 		private static int m_sectionDepth;
 		private static int m_activeSwitch;
 		private static int m_gcCounter;
+		private static int m_buttonPass = -1;
 		private static Vector2 m_contentOrigin;
 		private static float m_contentWidth = 1f;
 
@@ -139,6 +141,7 @@ namespace Trellis
 		private enum OpenCloseKind : byte
 		{
 			Popup,
+			Window,
 			Section,
 			FadeIn
 		}
@@ -254,11 +257,11 @@ namespace Trellis
 			MenuAnimation.m_gcCounter = 0;
 
 			float now = Gui.unscaledTime;
-			MenuAnimation.gcLights(MenuAnimation.kHoverState, now);
-			MenuAnimation.gcLights(MenuAnimation.kToggleState, now);
-			MenuAnimation.gcLights(MenuAnimation.kEdgeState, now);
-			MenuAnimation.gcLights(MenuAnimation.kPresenceState, now);
-			MenuAnimation.gcLights(MenuAnimation.kPressState, now);
+			MenuAnimation.gcLights(MenuAnimation.kHoverState, now, true);
+			MenuAnimation.gcLights(MenuAnimation.kToggleState, now, true);
+			MenuAnimation.gcLights(MenuAnimation.kEdgeState, now, false);
+			MenuAnimation.gcLights(MenuAnimation.kPresenceState, now, false);
+			MenuAnimation.gcLights(MenuAnimation.kPressState, now, true);
 			MenuAnimation.gcFades(now);
 			MenuAnimation.gcEntries(now);
 			MenuAnimation.gcMarkers(now);
@@ -305,7 +308,7 @@ namespace Trellis
 
 		internal static bool drawButton(Rect rect, string text, GUIStyle style, Vector2 mouse)
 		{
-			bool hovered = Gui.enabled && RectMath.contains(rect, mouse);
+			bool hovered = Gui.enabled && !Widgets.dragActive && RectMath.contains(rect, mouse);
 
 			bool clicked = hovered && MenuHost.mouseDown0;
 
@@ -343,20 +346,22 @@ namespace Trellis
 			return clicked;
 		}
 
-		internal static float disclosureProgress(string animId, bool expanded) => MenuAnimation.sampleLight(MenuAnimation.kToggleState, MenuAnimation.animKey(animId, AnimKeys.kDisclosureSalt), expanded, MenuAnimation.enabled);
+		internal static float disclosureProgress(string animId, bool expanded) => MenuAnimation.sampleToggle(MenuAnimation.animKey(animId, AnimKeys.kDisclosureSalt), expanded, MenuAnimation.enabled);
 		internal static float disclosureHover(string animId, bool hovered) => MenuAnimation.hoverProgress(MenuAnimation.animKey(animId, AnimKeys.kDisclosureHoverSalt), hovered);
 		internal static void snapCheckbox(string toggleKey, bool value) => MenuAnimation.snapToggle(MenuAnimation.animKey(toggleKey, AnimKeys.kCheckboxSalt), value);
 		internal static void snapDisclosure(string animId, bool expanded) => MenuAnimation.snapToggle(MenuAnimation.animKey(animId, AnimKeys.kDisclosureSalt), expanded);
 
 		internal static void drawCheckbox(Rect rect, bool value, bool hovered, string toggleKey)
 		{
-			float onT = MenuAnimation.sampleLight(MenuAnimation.kToggleState, MenuAnimation.animKey(toggleKey, AnimKeys.kCheckboxSalt), value, MenuAnimation.enabled);
+			float onT = MenuAnimation.sampleToggle(MenuAnimation.animKey(toggleKey, AnimKeys.kCheckboxSalt), value, MenuAnimation.enabled);
 
 			float hoverT = MenuAnimation.sampleLight(MenuAnimation.kHoverState, MenuAnimation.animKey(toggleKey, AnimKeys.kCheckboxHoverSalt), hovered, AnimationConfig.hoverEnabled);
 			Theme.drawCheckbox(rect, onT, hoverT);
 		}
 
 		internal static void noteOpened(string id) => MenuAnimation.openEntry(id.GetHashCode(), OpenCloseKind.Popup);
+		internal static void noteWindowOpened(string id) => MenuAnimation.openEntry(id.GetHashCode(), OpenCloseKind.Window);
+		internal static void noteRevealed(string id) => MenuAnimation.openEntry(id.GetHashCode(), OpenCloseKind.Section);
 
 		internal static void close(string id)
 		{
@@ -437,6 +442,27 @@ namespace Trellis
 
 			MenuAnimation.kOpenClose.Remove(key);
 			return true;
+		}
+
+		// open keeps a sheet drawing even when reset dropped its entry under a live window
+		internal static bool sheetShown(string id, bool open, out bool interactive)
+		{
+			interactive = false;
+			if (MenuAnimation.consumeClosed(id))
+				return false;
+
+			interactive = MenuAnimation.sheetLive(id, open);
+			return open || MenuAnimation.shouldRender(id);
+		}
+
+		internal static bool sheetLive(string id, bool open) => open && !MenuAnimation.isClosingOrClosed(id);
+
+		internal static void driveSheet(string id, bool open)
+		{
+			if (open)
+				MenuAnimation.noteOpened(id);
+			else
+				MenuAnimation.close(id);
 		}
 
 		internal static float alphaOf(string id)
@@ -938,7 +964,14 @@ namespace Trellis
 
 		private static float sampleLight(Dictionary<int, LightEntry> states, int id, bool on, bool animate)
 		{
-			ref LightEntry entry = ref MenuAnimation.touchLight(states, id, on ? 1f : 0f);
+			ref LightEntry entry = ref MenuAnimation.touchLight(states, id, 0f);
+			return Fade.cut(ref entry.m_value, on, animate);
+		}
+
+		// a toggle shows its real value on first draw
+		private static float sampleToggle(int id, bool on, bool animate)
+		{
+			ref LightEntry entry = ref MenuAnimation.touchLight(MenuAnimation.kToggleState, id, on ? 1f : 0f);
 			return Fade.cut(ref entry.m_value, on, animate);
 		}
 
@@ -978,11 +1011,11 @@ namespace Trellis
 			return ref entry;
 		}
 
-		// popups light over their own size while sections and fade ins carry the anchor light
+		// popups and windows light over their own size while sections and fade ins carry the anchor light
 		private static MotionProfile sheetLight(ref OpenCloseEntry entry)
 		{
 			bool animate = MenuAnimation.kindEnabled(entry.m_kind);
-			return entry.m_kind == OpenCloseKind.Popup ? MotionProfile.frameLight(entry.m_extent, animate) : MotionProfile.light(animate);
+			return entry.m_kind == OpenCloseKind.Popup || entry.m_kind == OpenCloseKind.Window ? MotionProfile.frameLight(entry.m_extent, animate) : MotionProfile.light(animate);
 		}
 
 		// the size is only known once the sheet lays out so the light is retuned in flight without losing where it is
@@ -1018,6 +1051,9 @@ namespace Trellis
 				case OpenCloseKind.Section:
 					return AnimationConfig.sectionsEnabled;
 
+				case OpenCloseKind.Window:
+					return AnimationConfig.windowEnabled;
+
 				case OpenCloseKind.FadeIn:
 					return MenuAnimation.enabled;
 
@@ -1026,7 +1062,8 @@ namespace Trellis
 			}
 		}
 
-		private static void gcLights(Dictionary<int, LightEntry> states, float now)
+		// these maps reseed on redraw like a new control so dropping them lit replays nothing new
+		private static void gcLights(Dictionary<int, LightEntry> states, float now, bool purgeLit)
 		{
 			if (states.Count == 0)
 				return;
@@ -1034,7 +1071,8 @@ namespace Trellis
 			MenuAnimation.kGcScratch.Clear();
 			foreach (KeyValuePair<int, LightEntry> pair in states)
 			{
-				if (!(now - pair.Value.m_lastTouched > Gc.kLifetimeSeconds && pair.Value.m_value.atRest && pair.Value.m_value.goal <= 0f))
+				bool dark = pair.Value.m_value.atRest && pair.Value.m_value.goal <= 0f;
+				if (!(now - pair.Value.m_lastTouched > Gc.kLifetimeSeconds && (purgeLit || dark)))
 					continue;
 
 				MenuAnimation.kGcScratch.Add(pair.Key);
@@ -1117,15 +1155,27 @@ namespace Trellis
 				states.Remove(MenuAnimation.kGcScratch[i]);
 		}
 
-		private static int buttonId(Rect rect, string text)
+		// outside a block the rect moves with its window so same text buttons are told apart by draw order
+		private static int buttonId(string text)
 		{
+			if (MenuAnimation.m_buttonPass != Gui.passToken)
+			{
+				MenuAnimation.m_buttonPass = Gui.passToken;
+
+				MenuAnimation.kButtonCounts.Clear();
+			}
+
+			int textHash = text?.GetHashCode() ?? 0;
+
+			long slot = ((long)MenuHost.m_currentBlock << 32) | (uint)textHash;
+			MenuAnimation.kButtonCounts.TryGetValue(slot, out int occurrence);
+			MenuAnimation.kButtonCounts[slot] = occurrence + 1;
 			unchecked
 			{
-				int hash = RectMath.x(rect).GetHashCode();
+				int hash = MenuHost.m_currentBlock;
 
-				hash = (hash * AnimKeys.kMix) ^ RectMath.y(rect).GetHashCode();
-				hash = (hash * AnimKeys.kMix) ^ RectMath.w(rect).GetHashCode();
-				hash = (hash * AnimKeys.kMix) ^ (text?.GetHashCode() ?? 0);
+				hash = (hash * AnimKeys.kMix) ^ textHash;
+				hash = (hash * AnimKeys.kMix) ^ occurrence;
 				return hash;
 			}
 		}
@@ -1144,7 +1194,7 @@ namespace Trellis
 			}
 		}
 
-		private static int idFor(Rect rect, string text) => MenuHost.m_inBlock ? MenuAnimation.contentId(rect, text) : MenuAnimation.buttonId(rect, text);
+		private static int idFor(Rect rect, string text) => MenuHost.m_inBlock ? MenuAnimation.contentId(rect, text) : MenuAnimation.buttonId(text);
 		private static int animKey(string id, int salt) => unchecked(id.GetHashCode() * AnimKeys.kMix) ^ salt;
 
 		private static void snapToggle(int key, bool value)
@@ -1186,7 +1236,7 @@ namespace Trellis
 
 		private static bool beginClip(int hash, float layoutProgress, float y)
 		{
-			if (!AnimationConfig.sectionsEnabled || layoutProgress >= 1f || layoutProgress <= 0f)
+			if (!AnimationConfig.sectionsEnabled || layoutProgress >= 1f)
 				return false;
 
 			MenuAnimation.kFullHeights.TryGetValue(hash, out float fullHeight);

@@ -66,8 +66,8 @@ namespace Trellis
 
 		private static class Layout
 		{
-			internal const float kBlockPad = 10f;
-			internal const float kBlockGap = 12f;
+			internal const float kBlockPad = ThemeConstants.Space.kWide;
+			internal const float kBlockGap = ThemeConstants.Space.kWide;
 			internal const float kBlockW = 340f;
 			internal const float kMaxBlockW = 520f;
 			internal const int kMaxCols = 4;
@@ -1040,6 +1040,8 @@ namespace Trellis
 
 				Matrix4x4 savedMatrix = Gui.matrix;
 
+				int savedDisabled = Widgets.disabledDepth;
+
 				MenuAnimation.beginMeasure();
 
 				MenuRowFlow.beginBlock(id);
@@ -1062,6 +1064,8 @@ namespace Trellis
 					MenuRowFlow.abort();
 
 					ContentClip.unwind();
+
+					Widgets.trimDisabled(savedDisabled);
 
 					Gui.color = savedColor;
 					Gui.enabled = savedEnabled;

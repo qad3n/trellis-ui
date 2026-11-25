@@ -18,6 +18,13 @@ namespace Trellis
 
 			if (RectMath.y(rect) < 0f)
 				rect.m_YMin = 0f;
+
+			float designWidth = MenuHost.designW;
+			if (RectMath.xMax(rect) > designWidth)
+				rect.m_XMin = designWidth - RectMath.w(rect);
+
+			if (RectMath.x(rect) < 0f)
+				rect.m_XMin = 0f;
 			return rect;
 		}
 
@@ -71,7 +78,7 @@ namespace Trellis
 		internal static void clampScaled(ref float winX, ref float winY, ref float winW, ref float winH, float minW, float minH) => LayoutMath.clampWindow(ref winX, ref winY, ref winW, ref winH, minW, minH, MenuHost.designW, MenuHost.designH);
 
 		private static int detectEdges(Vector2 mouse) => WindowChrome.detectEdges(RectMath.create(MenuHost.m_winX, MenuHost.m_winY, MenuHost.winW, MenuHost.winH), mouse);
-		private static void drawEdges(int edges) => WindowChrome.drawEdgesAnimated(RectMath.create(MenuHost.m_winX, MenuHost.m_winY, MenuHost.winW, MenuHost.winH), edges, WindowChrome.WindowId.kMenu);
+		private static void drawEdges(int edges) => WindowChrome.drawEdgesAnimated(RectMath.create(MenuHost.m_winX, MenuHost.m_winY, MenuHost.winW, MenuHost.winH), edges, WindowChrome.kMenuWindow);
 		private static void snapWindow() => LayoutMath.snapWindow(ref MenuHost.m_winX, ref MenuHost.m_winY, ref MenuHost.winW, ref MenuHost.winH, MenuHost.minW, MenuHost.minH);
 	}
 }

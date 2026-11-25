@@ -23,9 +23,7 @@ namespace Trellis
 
 		internal static void onGUI<TWindow>(string animId, bool open, TWindow window, string location, Action draw) where TWindow : unmanaged, Enum
 		{
-			MenuAnimation.consumeClosed(animId);
-
-			if (!open && !MenuAnimation.shouldRender(animId))
+			if (!MenuAnimation.sheetShown(animId, open, out bool sheetLive))
 				return;
 
 			MenuAnimation.beginOverlay();
@@ -34,7 +32,7 @@ namespace Trellis
 
 			Vector2 mouse = MenuHost.designMouse(scale);
 
-			bool live = open && !MenuAnimation.isClosingOrClosed(animId) && !MenuHost.coversCursor();
+			bool live = sheetLive && !MenuHost.coversCursor();
 
 			Color prevColor = Gui.color;
 
@@ -119,6 +117,7 @@ namespace Trellis
 
 			content = Theme.windowBody(window, Layout.kTitleBarH);
 			Theme.drawWindowRegion(window, content, Theme.panelFill);
+			Theme.drawBottomShadow(window, Theme.panelFill);
 			return sheet;
 		}
 

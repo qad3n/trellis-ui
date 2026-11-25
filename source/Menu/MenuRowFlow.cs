@@ -48,6 +48,7 @@ namespace Trellis
 
 		private struct GhostRow
 		{
+			internal int m_key;
 			internal int m_afterKey;
 			internal float m_height;
 			internal MotionValue m_payout;
@@ -151,6 +152,8 @@ namespace Trellis
 				return default;
 			if (!rows.m_seenSet.Add(key))
 				return default;
+			if (!rows.m_rows.ContainsKey(key))
+				MenuRowFlow.adoptGhost(rows, key);
 
 			y += MenuRowFlow.emitGhosts(rows, MenuRowFlow.m_emittedKey);
 
@@ -364,10 +367,37 @@ namespace Trellis
 				payout.vent(0f, MenuRowFlow.payoutProfile(state.m_height));
 				rows.m_ghosts.Add(new GhostRow
 				{
+					m_key = key,
 					m_afterKey = MenuRowFlow.precedingKey(rows, i),
 					m_height = state.m_height,
 					m_payout = payout
 				});
+			}
+		}
+
+		// a row back before its ghost closed reopens from the ghost height instead of from zero
+		private static void adoptGhost(BlockRows rows, int key)
+		{
+			for (int i = 0; i < rows.m_ghosts.Count; i++)
+			{
+				GhostRow ghost = rows.m_ghosts[i];
+				if (ghost.m_key != key || ghost.m_emitted)
+					continue;
+
+				RowState state = new RowState
+				{
+					m_height = ghost.m_height,
+					m_payout = ghost.m_payout,
+					m_light = MotionValue.at(0f),
+					m_container = MenuRowFlow.currentContainer
+				};
+				state.m_payout.reel(1f, MenuRowFlow.payoutProfile(ghost.m_height));
+				state.m_light.reel(1f, MotionProfile.light(true));
+
+				rows.m_rows[key] = state;
+				rows.m_arrived++;
+				rows.m_ghosts.RemoveAt(i);
+				return;
 			}
 		}
 

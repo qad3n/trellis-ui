@@ -109,9 +109,11 @@ namespace Trellis
 
 		private static void pollPopup()
 		{
-			if (!MenuHost.m_popupActive || MenuAnimation.isClosingOrClosed(MenuHost.kPopupId))
+			if (!MenuAnimation.sheetLive(MenuHost.kPopupId, MenuHost.m_popupActive))
 				return;
 			if (string.IsNullOrEmpty(MenuHost.m_popupMessage))
+				return;
+			if (MenuHost.pollPopupKeys())
 				return;
 			if (!MenuHost.mouseDown0)
 				return;
@@ -119,33 +121,72 @@ namespace Trellis
 			MenuHost.popupButtons(out Rect okRect, out Rect cancelRect);
 			if (RectMath.contains(okRect, MenuHost.mousePosition))
 			{
-				Action onConfirm = MenuHost.m_onConfirm;
-
-				MenuHost.m_onConfirm = null;
-				MenuHost.dismissPopup();
 				MenuHost.consumeMouseDown0();
-
-				onConfirm?.Invoke();
+				MenuHost.confirmPopup();
 				return;
 			}
 
 			if (!(MenuHost.m_popupConfirm && RectMath.contains(cancelRect, MenuHost.mousePosition)))
 				return;
 
+			MenuHost.consumeMouseDown0();
+			MenuHost.cancelPopup();
+		}
+
+		// a focused field or an armed keybind capture owns the keyboard and the menu toggle key always wins
+		private static bool pollPopupKeys()
+		{
+			Event current = Event.current;
+
+			bool free = current.type == EventType.KeyDown && TextInputFocus.activeName == null && !Widgets.capturingKeybind && !MenuHost.togglesMenu(current.keyCode);
+			if (!free)
+				return false;
+
+			switch (current.keyCode)
+			{
+				case KeyCode.Return:
+				case KeyCode.KeypadEnter:
+					current.Use();
+					MenuHost.confirmPopup();
+					return true;
+
+				case KeyCode.Escape:
+					current.Use();
+					if (MenuHost.m_popupConfirm)
+						MenuHost.cancelPopup();
+					else
+						MenuHost.confirmPopup();
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+		private static void confirmPopup()
+		{
+			Action onConfirm = MenuHost.m_onConfirm;
+
 			MenuHost.m_onConfirm = null;
 			MenuHost.dismissPopup();
-			MenuHost.consumeMouseDown0();
+
+			onConfirm?.Invoke();
+		}
+
+		private static void cancelPopup()
+		{
+			MenuHost.m_onConfirm = null;
+			MenuHost.dismissPopup();
 		}
 
 		private static void drawPopup()
 		{
-			if (MenuAnimation.consumeClosed(MenuHost.kPopupId))
+			if (!MenuAnimation.sheetShown(MenuHost.kPopupId, MenuHost.m_popupActive, out bool interactive))
 			{
 				MenuHost.m_popupActive = false;
 				MenuHost.m_onConfirm = null;
-			}
-			if (!MenuHost.m_popupActive && !MenuAnimation.shouldRender(MenuHost.kPopupId))
 				return;
+			}
 
 			float popupAlpha = MenuAnimation.alphaOf(MenuHost.kPopupId);
 
@@ -159,7 +200,6 @@ namespace Trellis
 
 			MenuHost.layoutPopup(out float popupX, out float popupY, out float popupH, out float textH);
 
-			bool interactive = MenuHost.m_popupActive && !MenuAnimation.isClosingOrClosed(MenuHost.kPopupId);
 			using (MenuAnimation.beginSheet(MenuHost.kPopupId, MotionMath.extent(PopupLayout.kWidth, popupH)))
 			{
 				Theme.drawPopupBg(RectMath.create(popupX, popupY, PopupLayout.kWidth, popupH));

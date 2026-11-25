@@ -152,19 +152,9 @@ namespace Trellis
 			MenuHost.primeMouse(Live.frameCount);
 
 			Vector2 mouse = MenuHost.scaledMouse();
-			if (Input.GetMouseButtonDown(0) && !ColorPicker.popupContains(mouse))
-			{
-				int edges = MenuHost.detectEdges(mouse);
 
-				Rect window = MenuHost.windowRect;
-				if (edges != 0)
-					MenuHost.m_drag.beginResize(edges, mouse, window);
-				else if (RectMath.contains(RectMath.create(MenuHost.m_winX + MenuHost.kEdgeSize, MenuHost.m_winY, MenuHost.winW - MenuHost.kEdgeSize * 2f, MenuHost.kTitleBarH), mouse))
-					MenuHost.m_drag.beginMove(mouse, window);
-			}
-
-			if (Input.GetMouseButtonUp(0))
-				MenuHost.m_drag.end();
+			Rect titleHit = RectMath.create(MenuHost.m_winX + MenuHost.kEdgeSize, MenuHost.m_winY, MenuHost.winW - MenuHost.kEdgeSize * 2f, MenuHost.kTitleBarH);
+			MenuHost.m_drag.update(mouse, MenuHost.windowRect, titleHit, ColorPicker.popupContains(mouse));
 
 			if (MenuHost.m_drag.m_dragging)
 			{
@@ -588,7 +578,12 @@ namespace Trellis
 
 			Color prevColor = Gui.color;
 
-			float topStrength = FastMath.clamp01(scrollY / MenuHost.kFadeHeight);
+			// a band over a see through window also hides the game so it thins faster than the window while fading
+			float fade = MenuHost.displayFade;
+
+			float bandShare = fade * fade;
+
+			float topStrength = FastMath.clamp01(scrollY / MenuHost.kFadeHeight) * bandShare;
 			if (topStrength > 0f)
 			{
 				Gui.color = ColorMath.fade(prevColor, GraphicsInfo.fadeAlpha(topStrength));
@@ -596,7 +591,7 @@ namespace Trellis
 				ScrollFade.draw(MenuHost.windowRect, MenuHost.fadeBand(viewRect, contentW, RectMath.y(viewRect)), true, MenuHost.kContentMargin);
 			}
 
-			float bottomStrength = FastMath.clamp01((maxScroll - scrollY) / MenuHost.kFadeHeight);
+			float bottomStrength = FastMath.clamp01((maxScroll - scrollY) / MenuHost.kFadeHeight) * bandShare;
 			if (bottomStrength > 0f)
 			{
 				Gui.color = ColorMath.fade(prevColor, GraphicsInfo.fadeAlpha(bottomStrength));

@@ -274,14 +274,6 @@ namespace Trellis
 
 					notifEntry.m_headerContent.text = notifEntry.m_header;
 					Notifications.setBody(notifEntry, body);
-
-					if (duplicateIndex >= 0)
-					{
-						notifEntry.m_placed = true;
-						notifEntry.m_y = Notifications.kActive[duplicateIndex].m_y;
-
-						Notifications.kActive.RemoveAt(duplicateIndex);
-					}
 					Notifications.kActive.Add(notifEntry);
 				}
 			}
