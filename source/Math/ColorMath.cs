@@ -121,6 +121,7 @@ namespace Trellis
 
 		internal static Color gammaToLinear(Color color) => ColorMath.rgba(ColorMath.gammaToLinear(color.r), ColorMath.gammaToLinear(color.g), ColorMath.gammaToLinear(color.b), color.a);
 		internal static Color linearToGamma(Color color) => ColorMath.rgba(ColorMath.linearToGamma(color.r), ColorMath.linearToGamma(color.g), ColorMath.linearToGamma(color.b), color.a);
+		internal static float linearLuminance(float red, float green, float blue) => Luminance.kRedWeight * red + Luminance.kGreenWeight * green + Luminance.kBlueWeight * blue;
 		internal static float relativeLuminance(Color color) => Luminance.kRedWeight * ColorMath.gammaToLinear(color.r) + Luminance.kGreenWeight * ColorMath.gammaToLinear(color.g) + Luminance.kBlueWeight * ColorMath.gammaToLinear(color.b);
 
 		internal static Color hsvAtLuminance(float hue, float saturation, float targetLuminance, float alpha)
@@ -385,7 +386,7 @@ namespace Trellis
 			return unique.ToArray();
 		}
 
-		private static float gammaToLinear(float channel)
+		internal static float gammaToLinear(float channel)
 		{
 			if (channel <= Srgb.kGammaCutoff)
 				return channel / Srgb.kLinearSlope;
