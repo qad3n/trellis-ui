@@ -346,15 +346,7 @@ namespace Trellis
 			if (animId == null)
 				return;
 
-			if (MenuAnimation.consumeClosed(animId))
-			{
-				ColorPicker.m_activeAnim = null;
-				ColorPicker.m_fadingId = null;
-				return;
-			}
-
-			bool interactive = ColorPicker.m_activeId != null && !MenuAnimation.isClosingOrClosed(animId);
-			if (!interactive && !MenuAnimation.shouldRender(animId))
+			if (!MenuAnimation.sheetShown(animId, ColorPicker.m_activeId != null, out bool interactive))
 			{
 				ColorPicker.m_activeAnim = null;
 				ColorPicker.m_fadingId = null;
@@ -374,7 +366,7 @@ namespace Trellis
 			PickerRects rects = new PickerRects(popupRect);
 			using (MenuAnimation.beginSheet(animId, MotionMath.extent(RectMath.w(popupRect), RectMath.h(popupRect))))
 			{
-				Theme.drawWindowBg(popupRect);
+				Theme.drawSheetBg(popupRect);
 
 				Color prevGui = Gui.color;
 
@@ -585,7 +577,7 @@ namespace Trellis
 
 			float popupX = anchorX + RectMath.w(ColorPicker.m_anchorRect) + Layout.kAnchorGap;
 
-			float screenW = MenuHost.kBaseWidth;
+			float screenW = MenuHost.designW;
 			if (popupX + ColorPicker.kPopupW > screenW)
 				popupX = anchorX - ColorPicker.kPopupW - Layout.kAnchorGap;
 

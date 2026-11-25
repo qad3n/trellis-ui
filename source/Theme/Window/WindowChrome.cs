@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Trellis
 {
@@ -12,16 +13,15 @@ namespace Trellis
 		internal const int kEdgeAll = WindowChrome.kEdgeLeft | WindowChrome.kEdgeRight | WindowChrome.kEdgeTop | WindowChrome.kEdgeBottom;
 		private const float kThickness = 2f;
 
-		private static readonly int[] kLastEdges = new int[WindowId.kCount];
+		internal const int kMenuWindow = 0;
+		// the menu window holds the first slot
+		private static readonly List<int> kLastEdges = new List<int> { 0 };
 
-		internal static class WindowId
+		// every resizable window takes its own id so the edge highlights fade apart
+		internal static int register()
 		{
-			internal const int kMenu = 0;
-			internal const int kSpectators = 1;
-			internal const int kChat = 2;
-			internal const int kChatMinimal = 3;
-			internal const int kKeystrokes = 4;
-			internal const int kCount = 5;
+			WindowChrome.kLastEdges.Add(0);
+			return WindowChrome.kLastEdges.Count - 1;
 		}
 
 		internal static int detectEdges(Rect rect, Vector2 mouse)

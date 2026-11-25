@@ -18,6 +18,31 @@
 		internal const int kFpsGood = 60;
 		internal const int kFpsCaution = 30;
 
+		internal static class Space
+		{
+			internal const float kTight = 4f;
+			internal const float kSnug = 6f;
+			internal const float kBase = 8f;
+			internal const float kWide = 12f;
+		}
+
+		internal static class Chrome
+		{
+			internal const float kDisabledAlpha = 0.35f;
+			internal const float kInactiveAlpha = 0.5f;
+			internal const float kHintAlpha = 0.45f;
+			internal const float kSelectionAlpha = 0.35f;
+			internal const float kCaptureAlpha = 0.16f;
+			internal const float kConflictAlpha = 0.22f;
+			internal const float kHoverLift = 0.3f;
+			internal const float kChipShade = 0.62f;
+			internal const float kChipBorderAlpha = 0.55f;
+			internal const float kAccentLine = 2f;
+			internal const float kStatusStripe = 3f;
+			internal const float kShadowLine = 1f;
+			internal const float kShadowShade = 0.7f;
+		}
+
 		internal static class CaptureTint
 		{
 			internal const float kRest = 0.35f;

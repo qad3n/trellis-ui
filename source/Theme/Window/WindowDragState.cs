@@ -26,6 +26,29 @@ namespace Trellis
 			m_start = window;
 		}
 
+		internal void update(Vector2 mouse, Rect window, Rect moveHit, bool blocked) => update(mouse, window, moveHit, blocked, WindowChrome.kEdgeAll, default, out bool _);
+
+		// a press on an allowed edge resizes, a press in the claim rect is the caller's, a press in the move rect drags and a release ends either
+		internal bool update(Vector2 mouse, Rect window, Rect moveHit, bool blocked, int edgeMask, Rect claim, out bool released)
+		{
+			bool claimed = false;
+			if (!blocked && Input.GetMouseButtonDown(0))
+			{
+				int edges = WindowChrome.detectEdges(window, mouse) & edgeMask;
+				if (edges != 0)
+					beginResize(edges, mouse, window);
+				else if (RectMath.contains(claim, mouse))
+					claimed = true;
+				else if (RectMath.contains(moveHit, mouse))
+					beginMove(mouse, window);
+			}
+
+			released = Input.GetMouseButtonUp(0);
+			if (released)
+				end();
+			return claimed;
+		}
+
 		internal void end()
 		{
 			m_dragging = false;

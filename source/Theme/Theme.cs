@@ -222,7 +222,6 @@ namespace Trellis
 		private static class BoxFill
 		{
 			internal const float kOpaqueInset = 0.49f;
-			internal const float kFadedAlpha = 0.9f;
 			internal const float kRadiusTrim = 0.25f;
 		}
 
@@ -411,12 +410,13 @@ namespace Trellis
 			return !box.empty;
 		}
 
-		internal static void drawWindowFill(Rect rect)
+		internal static void drawWindowFill(Rect rect, Color fill)
 		{
 			if (!Theme.tryWindowBox(rect, out BoxMetrics box))
 				return;
 
-			Theme.drawBoxFill(box, Surfaces.m_base, box.m_border > 0f);
+			Theme.regionShape(box, out Rect fillRect, out float fillRadius);
+			Theme.drawRoundedShape(fillRect, fill, VectorMath.v4(0f, 0f, 0f, 0f), Theme.uniformRadii(fillRadius));
 		}
 
 		internal static void drawWindowImage(Rect rect, Texture texture, ScaleMode scaleMode, Color tint)
@@ -424,7 +424,7 @@ namespace Trellis
 			if (!Theme.tryWindowBox(rect, out BoxMetrics box))
 				return;
 
-			Theme.fillShape(box, box.m_border > 0f, out Rect fillRect, out float fillRadius);
+			Theme.regionShape(box, out Rect fillRect, out float fillRadius);
 			Gui.drawRoundedTexture(fillRect, texture, scaleMode, ColorMath.modulate(tint, Gui.color), VectorMath.v4(0f, 0f, 0f, 0f), Theme.uniformRadii(fillRadius));
 		}
 
@@ -439,10 +439,21 @@ namespace Trellis
 			Theme.drawOutline(rect, Surfaces.m_borderColor);
 		}
 
-		internal static void drawPopupBg(Rect rect) => Theme.drawRoundedBox(rect, Surfaces.m_base, Theme.m_popupBorder, Theme.cornerR, Theme.borderWidth);
+		internal static void drawPopupBg(Rect rect)
+		{
+			Theme.drawRoundedBox(rect, Surfaces.m_base, Theme.m_popupBorder, Theme.cornerR, Theme.borderWidth);
+			Theme.drawBottomShadow(rect, Surfaces.m_base);
+		}
+
 		internal static void drawPanelBg(Rect rect) => Theme.drawRoundedBox(rect, ColorMath.fade(Surfaces.m_panel, Theme.panelAlpha), Surfaces.m_borderColor, Theme.cornerR, Theme.borderWidth);
 		internal static void drawBlockBg(Rect rect) => Theme.drawRoundedBox(rect, Theme.blockFill, Theme.m_blockBorder, Theme.cornerR, Theme.borderWidth);
-		internal static void drawTooltipBg(Rect rect) => Theme.drawRoundedBox(rect, Surfaces.m_surface1, Surfaces.m_overlay0, Theme.cornerR, Theme.borderWidth);
+
+		internal static void drawTooltipBg(Rect rect)
+		{
+			Theme.drawRoundedBox(rect, Surfaces.m_surface1, Surfaces.m_overlay0, Theme.cornerR, Theme.borderWidth);
+			Theme.drawBottomShadow(rect, Surfaces.m_surface1);
+		}
+
 		internal static void drawSidebarBg(Rect rect) => Theme.drawRoundedBox(rect, ColorMath.fade(Surfaces.m_mantle, Theme.panelAlpha), Surfaces.kTransparent, Theme.cornerR, 0f);
 		internal static void drawInsetBg(Rect rect)
 		{
@@ -470,6 +481,7 @@ namespace Trellis
 
 			Gui.drawStroke(Theme.bandRule(box, bottom, box.m_border), Surfaces.m_borderColor);
 			Gui.drawStroke(Theme.bandRule(box, bottom, accentH), Theme.titleAccent);
+			Theme.drawShadowRule(box, bottom, fill);
 		}
 
 		internal static void drawTitleBand(Rect windowRect, float bandH, float accentH) => Theme.drawTitleBand(windowRect, bandH, accentH, ColorMath.kTransparent);
@@ -487,6 +499,30 @@ namespace Trellis
 			Theme.drawBandFill(box, bottom, Surfaces.m_mantle);
 
 			Gui.drawStroke(Theme.bandRule(box, bottom, accentH), Theme.m_popupBorder);
+		}
+
+		internal static void drawSheetBg(Rect rect)
+		{
+			Theme.drawWindowBg(rect);
+			Theme.drawBottomShadow(rect, Surfaces.m_base);
+		}
+
+		internal static void drawBottomShadow(Rect rect, Color surface)
+		{
+			if (!Theme.tryWindowBox(rect, out BoxMetrics box))
+				return;
+
+			Theme.drawShadowRule(box, RectMath.yMax(box.inner) - Gui.snapThickness(ThemeConstants.Chrome.kShadowLine), surface);
+		}
+
+		private static void drawShadowRule(in BoxMetrics box, float top, Color surface)
+		{
+			float bottom = top + Gui.snapThickness(ThemeConstants.Chrome.kShadowLine);
+
+			bool clear = top >= RectMath.y(box.m_outer) + box.m_radius && bottom <= RectMath.yMax(box.m_outer) - box.m_radius;
+
+			float inset = clear ? box.m_border : FastMath.max(box.m_border, box.m_radius);
+			Gui.drawStroke(RectMath.minMax(RectMath.x(box.m_outer) + inset, top, RectMath.xMax(box.m_outer) - inset, bottom), ColorMath.shade(surface, ThemeConstants.Chrome.kShadowShade));
 		}
 
 		internal static Rect windowInner(Rect windowRect) => RectMath.inset(windowRect, Theme.borderWidth);
@@ -567,7 +603,9 @@ namespace Trellis
 			if (!framed)
 				return;
 
-			Theme.drawRoundedFrame(box.m_outer, border, box.m_border, box.m_radius);
+			// the frame ring carries the fill under it so a fade composites one layer there not two
+			Color ring = fill.a > 0f ? GraphicsInfo.guiOver(border, fill) : border;
+			Theme.drawRoundedFrame(box.m_outer, ring, box.m_border, box.m_radius);
 		}
 
 		internal static void drawRoundedTint(Rect rect, Color color)
@@ -575,7 +613,8 @@ namespace Trellis
 			if (color.a <= 0f || !Theme.tryWindowBox(rect, out BoxMetrics box))
 				return;
 
-			Theme.drawBoxFill(box, color, box.m_border > 0f);
+			Theme.tintShape(box, out Rect tintRect, out float tintRadius);
+			Theme.drawRoundedShape(tintRect, color, VectorMath.v4(0f, 0f, 0f, 0f), Theme.uniformRadii(tintRadius));
 		}
 
 		internal static WidgetChrome chromeOf(GUIStyle style)
@@ -1061,7 +1100,7 @@ namespace Trellis
 			Theme.tacticalHeader.clipping = TextClipping.Clip;
 			Theme.tacticalHeader.alignment = TextAnchor.MiddleLeft;
 			Theme.tacticalHover = Theme.recolor(Theme.tacticalHeader, () => Theme.m_accentBright);
-			Theme.valueLabel = Theme.createStyle(font, FontSizes.kBody, () => Text.m_secondary);
+			Theme.valueLabel = Theme.createStyle(font, FontSizes.kCompact, () => Text.m_secondary);
 			Theme.valueLabel.richText = true;
 			Theme.valueLabel.clipping = TextClipping.Clip;
 			Theme.badgeLabel = Theme.createStyle(font, FontSizes.kSmall, () => Text.m_primary);
@@ -1171,7 +1210,7 @@ namespace Trellis
 			if (tint.a <= 0f)
 				return;
 
-			Theme.fillShape(box, box.m_border > 0f, out Rect fillRect, out float fillRadius);
+			Theme.regionShape(box, out Rect fillRect, out float fillRadius);
 
 			Rect snapped = Gui.snapRect(region);
 
@@ -1252,6 +1291,17 @@ namespace Trellis
 			Theme.drawRoundedShape(fillRect, fill, VectorMath.v4(0f, 0f, 0f, 0f), Theme.uniformRadii(fillRadius));
 		}
 
+		// a region paints after the frame so it stays inside it at every alpha
+		private static void regionShape(in BoxMetrics box, out Rect rect, out float radius) => Theme.fillShape(box, box.m_border > 0f, out rect, out radius);
+
+		// the trimmed radius tucks the fill under the frame arc so no seam opens
+		private static void innerShape(in BoxMetrics box, out Rect rect, out float radius)
+		{
+			rect = box.inner;
+
+			radius = box.m_radius > 0f ? FastMath.max(0f, box.innerRadius - BoxFill.kRadiusTrim * Gui.devicePixel) : 0f;
+		}
+
 		private static void fillShape(in BoxMetrics box, bool framed, out Rect rect, out float radius)
 		{
 			if (!framed)
@@ -1262,14 +1312,12 @@ namespace Trellis
 				return;
 			}
 
-			if (Gui.color.a < BoxFill.kFadedAlpha)
-			{
-				rect = box.inner;
+			Theme.innerShape(box, out rect, out radius);
+		}
 
-				radius = box.m_radius > 0f ? FastMath.max(0f, box.innerRadius - BoxFill.kRadiusTrim * Gui.devicePixel) : 0f;
-				return;
-			}
-
+		// a tint sits over the frame so it reaches the outer edge minus the antialiased rim
+		private static void tintShape(in BoxMetrics box, out Rect rect, out float radius)
+		{
 			if (box.m_radius <= 0f)
 			{
 				rect = box.m_outer;

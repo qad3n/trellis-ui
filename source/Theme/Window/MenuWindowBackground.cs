@@ -34,15 +34,17 @@ namespace Trellis
 			if (!MenuWindowBackground.active)
 				return Theme.Surfaces.m_base;
 
-			Vector2 box = VectorMath.v2(RectMath.w(windowRect), RectMath.h(windowRect));
+			Rect image = Theme.windowInner(windowRect);
+
+			Vector2 box = VectorMath.v2(RectMath.w(image), RectMath.h(image));
 
 			Vector2 shown = MenuWindowBackground.shownSize(box);
 			if (shown.x <= 0f || shown.y <= 0f)
 				return MenuWindowBackground.backdropColor;
 
-			float u = (x - RectMath.x(windowRect) - LayoutMath.centerOffset(box.x, shown.x)) / shown.x;
+			float u = (x - RectMath.x(image) - LayoutMath.centerOffset(box.x, shown.x)) / shown.x;
 
-			float v = 1f - (y - RectMath.y(windowRect) - LayoutMath.centerOffset(box.y, shown.y)) / shown.y;
+			float v = 1f - (y - RectMath.y(image) - LayoutMath.centerOffset(box.y, shown.y)) / shown.y;
 			if (u < 0f || u > 1f || v < 0f || v > 1f)
 				return GraphicsInfo.guiOver(MenuWindowBackground.scrim, Theme.Surfaces.m_base);
 
@@ -50,6 +52,7 @@ namespace Trellis
 		}
 
 		private static Color scrim => ColorMath.rgba(0f, 0f, 0f, MenuWindowBackground.scrimAlpha);
+		private static Color dimmedTint => ColorMath.withAlpha(GraphicsInfo.guiOver(MenuWindowBackground.scrim, ColorMath.withAlpha(ThemeConfig.BackgroundTint, 1f)), ThemeConfig.BackgroundTint.a);
 
 		private static Color dimmed(Color texel)
 		{
@@ -96,12 +99,11 @@ namespace Trellis
 			if (!Gui.repainting)
 				return true;
 
+			// the dim is folded into each layer so the window fades as one surface instead of a stack
 			if (ThemeConfig.BackgroundFit == MenuWindowBgFit.Fit)
-				Theme.drawWindowFill(rect);
+				Theme.drawWindowFill(rect, GraphicsInfo.guiOver(MenuWindowBackground.scrim, Theme.Surfaces.m_base));
 
-			Theme.drawWindowImage(rect, MenuWindowBackground.m_texture, MenuWindowBackground.scaleMode(), ThemeConfig.BackgroundTint);
-
-			Theme.drawRoundedTint(rect, MenuWindowBackground.scrim);
+			Theme.drawWindowImage(rect, MenuWindowBackground.m_texture, MenuWindowBackground.scaleMode(), MenuWindowBackground.dimmedTint);
 			return true;
 		}
 
