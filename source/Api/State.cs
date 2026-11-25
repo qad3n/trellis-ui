@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using UnityEngine;
 
 namespace Trellis
 {
@@ -16,6 +17,7 @@ namespace Trellis
 
 		// claims the layered pass for this frame so a popup closing on this click still draws on top
 		internal static void holdDropdownLayer() => Widgets.m_dropdownFrame = Gui.frameCount;
+		internal static string clipboard => GUIUtility.systemCopyBuffer ?? string.Empty;
 		internal static void setClipboard(string text) => Widgets.setClipboard(text);
 		internal static void copySelection(StringBuilder lines) => Widgets.copySelection(lines);
 		internal static bool copyPressed(TextSelectionOwner owner) => Widgets.copyPressed(owner);

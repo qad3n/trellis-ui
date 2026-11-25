@@ -32,7 +32,7 @@ namespace Trellis
 		internal static void emptyList(float x, float y, float w, float listH, string message) => Widgets.drawEmptyList(x, y, w, listH, message);
 		internal static void emptyState(Rect area, string title, string message = null) => Widgets.drawEmptyState(area, title, message);
 		internal static bool emptyStateAction(Rect area, string title, string message, string actionLabel) => Widgets.drawEmptyStateAction(area, title, message, actionLabel);
-		internal static void progress(Rect area, float ratio, bool indeterminate) => Widgets.drawProgressBar(area, ratio, indeterminate);
+		internal static void progress(string key, Rect area, float ratio, bool indeterminate) => Widgets.drawProgressBar(key, area, ratio, indeterminate);
 		internal static void marker(in MarkerFrame frame, Texture texture) => Widgets.drawMarker(frame, texture);
 		internal static void marker(in MarkerFrame frame, Vector2 offset, Texture texture) => Widgets.drawMarker(frame, offset, texture);
 		internal static void banner(float x, float y, float width, string title, string detail, Color accent, out float height) => Widgets.statusBanner(x, y, width, title, detail, accent, out height);

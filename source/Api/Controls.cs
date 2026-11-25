@@ -18,13 +18,7 @@ namespace Trellis
 		internal static bool toggleCycle(ref bool value, string label, string[] options, int[] states, string[] stateLabels, string tooltip = null) => Ui.set(ref value, Widgets.drawToggleCycle(ref Ui.m_y, Ui.m_w, value, label, options, states, stateLabels, tooltip));
 		internal static bool cycle(string label, string display, string tooltip = null) => Widgets.drawCycleRow(ref Ui.m_y, Ui.m_w, label, display, tooltip);
 
-		internal static bool slider(ref float value, string label, float min, float max, float step = -1f)
-		{
-			float prev = value;
-
-			value = Widgets.drawSlider(ref Ui.m_y, Ui.m_w, label, value, min, max, step);
-			return !FastMath.approximately(prev, value);
-		}
+		internal static bool slider(ref float value, string label, float min, float max, float step = -1f) => Ui.changed(ref value, Widgets.drawSlider(ref Ui.m_y, Ui.m_w, label, value, min, max, step));
 
 		internal static bool slider(ref int value, string label, float min, float max, string tooltip = null, float step = Widgets.kIntStep, string unit = null) => Ui.set(ref value, Widgets.drawSliderInt(ref Ui.m_y, Ui.m_w, label, value, min, max, tooltip, step, unit));
 		internal static bool sliderPx(ref float value, string label, float min, float max, float step = -1f) => Ui.changed(ref value, Widgets.drawSliderPx(ref Ui.m_y, Ui.m_w, label, value, min, max, step));

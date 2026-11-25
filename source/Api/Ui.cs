@@ -135,6 +135,9 @@ namespace Trellis
 			return advanced;
 		}
 
+		// no hover lights while a slider or scrollbar drag holds the mouse
+		internal static bool hovering(Rect rect, Vector2 mouse) => !Widgets.dragActive && RectMath.contains(rect, mouse);
+
 		// pass a key when the same call runs more than once in a block
 		internal static Reveal reveal(bool visible, string key = null, [CallerLineNumber] int line = 0) => new Reveal(MenuAnimation.beginSection(ref Ui.m_y, key ?? Ui.lineKey(line), visible));
 
@@ -200,6 +203,8 @@ namespace Trellis
 			float savedY = Ui.m_y;
 			float savedW = Ui.m_w;
 
+			int savedCursors = Ui.kCursors.Count;
+
 			Ui.m_y = y;
 			Ui.m_w = w;
 			try
@@ -208,6 +213,10 @@ namespace Trellis
 			}
 			finally
 			{
+				// a block that throws between push and pop leaves its cursors behind
+				if (Ui.kCursors.Count > savedCursors)
+					Ui.kCursors.RemoveRange(savedCursors, Ui.kCursors.Count - savedCursors);
+
 				y = Ui.m_y;
 				Ui.m_y = savedY;
 				Ui.m_w = savedW;
